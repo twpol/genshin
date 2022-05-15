@@ -4,13 +4,13 @@ import { load, save } from "../modules/storage.mjs";
 
 const e = getElements();
 
-function displayInventory() {
-    e.inventory.replaceChildren();
-    const data = load("inventory");
+function displayMaterials() {
+    e.materials.replaceChildren();
+    const data = load("materials");
     const materials = Object.keys(data).map((name) => GenshinDb.materials(name));
     materials.sort(sort);
     for (const material of materials) {
-        e.inventory.append(getMaterialCard(material, data[material.name]));
+        e.materials.append(getMaterialCard(material, data[material.name]));
     }
 }
 
@@ -19,9 +19,9 @@ for (const materialName of materialNames) {
     e.material.list.append($("option", { value: materialName }));
 }
 
-e.inventory.addEventListener("click", (event) => {
+e.materials.addEventListener("click", (event) => {
     if (event.target.classList.contains("quantity")) {
-        const data = load("inventory");
+        const data = load("materials");
         const name = event.target.closest(".card-genshin").title;
         e.material.edit.dialog.setAttribute("name", name);
         e.material.edit.quantity.value = data[name];
@@ -32,28 +32,28 @@ e.inventory.addEventListener("click", (event) => {
 
 e.material.edit.dialog.addEventListener("close", () => {
     const returnValue = e.material.edit.dialog.returnValue;
-    const data = load("inventory");
+    const data = load("materials");
     const name = e.material.edit.dialog.getAttribute("name");
     if (returnValue === "delete") {
         delete data[name];
         save(data);
-        displayInventory();
+        displayMaterials();
     } else if (returnValue === "save") {
         data[name] = Number(e.material.edit.quantity.value);
         save(data);
-        displayInventory();
+        displayMaterials();
     }
 });
 
 e.material.form.addEventListener("submit", (event) => {
     event.preventDefault();
     const name = e.material.select.value;
-    const data = load("inventory");
+    const data = load("materials");
     if (!(name in data)) data[name] = 0;
     save(data);
-    displayInventory();
+    displayMaterials();
     e.material.select.value = "";
-    document.querySelector(`#inventory > [title="${name}"] > .quantity`).click();
+    document.querySelector(`#materials > [title="${name}"] > .quantity`).click();
 });
 
-displayInventory();
+displayMaterials();
