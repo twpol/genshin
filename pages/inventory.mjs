@@ -14,22 +14,44 @@ function displayInventory() {
     }
 }
 
-function addInventory(name, count) {
-    const data = load("inventory");
-    if (!(name in data)) data[name] = 0;
-    data[name] += count;
-    save(data);
-    displayInventory();
-}
-
 const materialNames = GenshinDb.materials("names", { matchCategories: true });
 for (const materialName of materialNames) {
     e.material.list.append($("option", { value: materialName }));
 }
 
+e.inventory.addEventListener("click", (event) => {
+    if (event.target.classList.contains("quantity")) {
+        const data = load("inventory");
+        const name = event.target.closest(".card-genshin").title;
+        e.material.edit.dialog.setAttribute("name", name);
+        e.material.edit.quantity.value = data[name];
+        e.material.edit.dialog.returnValue = "";
+        e.material.edit.dialog.showModal();
+    }
+});
+
+e.material.edit.dialog.addEventListener("close", () => {
+    const returnValue = e.material.edit.dialog.returnValue;
+    const data = load("inventory");
+    const name = e.material.edit.dialog.getAttribute("name");
+    if (returnValue === "delete") {
+        delete data[name];
+        save(data);
+        displayInventory();
+    } else if (returnValue === "save") {
+        data[name] = Number(e.material.edit.quantity.value);
+        save(data);
+        displayInventory();
+    }
+});
+
 e.material.form.addEventListener("submit", (event) => {
     event.preventDefault();
-    addInventory(e.material.select.value, 0);
+    const name = e.material.select.value;
+    const data = load("inventory");
+    if (!(name in data)) data[name] = 0;
+    save(data);
+    displayInventory();
     e.material.select.value = "";
 });
 

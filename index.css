@@ -50,3 +50,7 @@
     padding: 4px;
     text-align: center;
 }
+
+.card-genshin > .quantity {
+    cursor: pointer;
+}
