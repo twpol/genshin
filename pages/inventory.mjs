@@ -53,6 +53,7 @@ e.material.form.addEventListener("submit", (event) => {
     save(data);
     displayInventory();
     e.material.select.value = "";
+    document.querySelector(`#inventory > [title="${name}"] > .quantity`).click();
 });
 
 displayInventory();
