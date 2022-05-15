@@ -28,7 +28,7 @@ export function getUserDay() {
 export function getCharacterCard(character) {
     return $(
         "div",
-        { class: "card text-bg-light" },
+        { class: "card text-bg-light card-genshin-character" },
         $("img", { class: "card-img-top", src: character.images.cover1 }),
         $("div", { class: "card-body" }, $("h5", { class: "card-title" }, character.name))
     );
@@ -37,10 +37,28 @@ export function getCharacterCard(character) {
 export function getWeaponCard(weapon) {
     return $(
         "div",
-        { class: "card text-bg-light" },
+        { class: "card text-bg-light card-genshin-weapon" },
         $("img", { class: "card-img-top", src: weapon.images.image }),
         $("div", { class: "card-body" }, $("h5", { class: "card-title" }, weapon.name))
     );
+}
+
+export function getMaterialCard(material, count) {
+    return $(
+        "div",
+        { class: `card text-dark border-0 card-genshin-material rarity-${material.rarity}`, title: material.name },
+        $("img", { class: "card-img-top", src: material.images.fandom }),
+        $(
+            "div",
+            { class: "card-genshin-rarity" },
+            ...repeat(material.rarity, () => $("i", { class: "bi bi-star-fill" }))
+        ),
+        ...(typeof count === "number" ? [$("div", { class: "card-footer border-0 text-center" }, count)] : [])
+    );
+}
+
+export function sort(a, b) {
+    return b.sortorder - a.sortorder;
 }
 
 function getServerDate(server) {
@@ -58,4 +76,8 @@ function getServerDate(server) {
 
 function getDateWithOffset(utcOffset) {
     return luxon.DateTime.now().setZone(utcOffset * 60);
+}
+
+function repeat(count, fn) {
+    return Array.from(Array(Number(count)).keys()).map((index) => fn(index));
 }

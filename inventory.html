@@ -18,23 +18,24 @@
         <nav class="navbar navbar-expand navbar-light bg-light mb-3">
             <div class="container-fluid">
                 <div class="navbar-nav">
-                    <a class="nav-link active" aria-current="page" href="./">Home</a>
-                    <a class="nav-link" href="./inventory">Inventory</a>
+                    <a class="nav-link" href="./">Home</a>
+                    <a class="nav-link active" aria-current="page" href="./inventory">Inventory</a>
                 </div>
             </div>
         </nav>
 
-        <div class="alert alert-primary" role="alert">
-            Today is <span id="user-day">[loading]</span> on <span id="user-server">[loading]</span> server
-        </div>
+        <h2>Inventory</h2>
+        <div class="custom-card-grid" id="inventory"></div>
 
-        <p>Today is a good day for collecting Talent Level-Up material for:</p>
-
-        <div class="custom-card-grid" id="talents"></div>
-
-        <p>Today is a good day for collecting Weapon Ascension material for:</p>
-
-        <div class="custom-card-grid" id="weapons"></div>
+        <h2>Add material</h2>
+        <form id="material-form">
+            <label class="form-label">
+                Select a material
+                <input class="form-control" list="material-list" id="material-select" />
+            </label>
+            <datalist id="material-list"></datalist>
+            <button type="submit" class="btn btn-primary">Add</button>
+        </form>
 
         <footer class="py-3 text-muted">
             <hr />
@@ -48,16 +49,8 @@
             integrity="sha384-pprn3073KE6tl6bjs2QrFaJGz5/SUsLqktiwsUTF55Jfv3qYSDhgCecCxMW52nD2"
             crossorigin="anonymous"
         ></script>
-        <script
-            src="https://cdn.jsdelivr.net/npm/luxon@2.4.0/build/global/luxon.min.js"
-            integrity="sha256-DIsAGD2EF8Qq2PCH9yzX/yt9FliJfWf+aGcdgR6tKwo="
-            crossorigin="anonymous"
-        ></script>
         <script src="https://cdn.jsdelivr.net/gh/theBowja/genshin-db@main/dist/genshindb-none.js"></script>
-        <script src="https://cdn.jsdelivr.net/gh/theBowja/genshin-db@main/dist/data/scripts/english-characters.js"></script>
         <script src="https://cdn.jsdelivr.net/gh/theBowja/genshin-db@main/dist/data/scripts/english-materials.js"></script>
-        <script src="https://cdn.jsdelivr.net/gh/theBowja/genshin-db@main/dist/data/scripts/english-talents.js"></script>
-        <script src="https://cdn.jsdelivr.net/gh/theBowja/genshin-db@main/dist/data/scripts/english-weapons.js"></script>
-        <script src="pages/index.mjs" type="module"></script>
+        <script src="pages/inventory.mjs" type="module"></script>
     </body>
 </html>
