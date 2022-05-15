@@ -1,5 +1,5 @@
 import { getElements } from "../modules/elements.mjs";
-import { getCharacterCard, getUserDay, getUserServer } from "../modules/genshin.mjs";
+import { getCharacterCard, getUserDay, getUserServer, getWeaponCard } from "../modules/genshin.mjs";
 
 const e = getElements();
 
@@ -23,15 +23,40 @@ for (const characterName of characterNames) {
             .map((c) => c.name)
     );
 
-    const talentDays = new Set(
+    const talentMaterialDays = new Set(
         [...talentMaterials]
             .map((material) => GenshinDb.materials(material).daysofweek)
             .filter((days) => !!days)
             .flat()
     );
 
-    if (talentDays.has(day)) {
+    if (talentMaterialDays.has(day)) {
         const character = GenshinDb.characters(characterName);
-        e.characters.append(getCharacterCard(character));
+        e.talents.append(getCharacterCard(character));
+    }
+}
+
+const weaponNames = GenshinDb.weapons("names", {
+    matchCategories: true,
+});
+
+for (const weaponName of weaponNames) {
+    const weapon = GenshinDb.weapons(weaponName);
+
+    const weaponMaterials = new Set(
+        Object.values(weapon.costs)
+            .flat()
+            .map((c) => c.name)
+    );
+
+    const weaponMaterialDays = new Set(
+        [...weaponMaterials]
+            .map((material) => GenshinDb.materials(material).daysofweek)
+            .filter((days) => !!days)
+            .flat()
+    );
+
+    if (weaponMaterialDays.has(day)) {
+        e.weapons.append(getWeaponCard(weapon));
     }
 }

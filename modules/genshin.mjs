@@ -34,6 +34,15 @@ export function getCharacterCard(character) {
     );
 }
 
+export function getWeaponCard(weapon) {
+    return $(
+        "div",
+        { class: "card text-bg-light" },
+        $("img", { class: "card-img-top", src: weapon.images.image }),
+        $("div", { class: "card-body" }, $("h5", { class: "card-title" }, weapon.name))
+    );
+}
+
 function getServerDate(server) {
     switch (server) {
         case SERVER_ASIA:
