@@ -1,0 +1,9 @@
+.custom-card-grid {
+    display: flex;
+    flex-flow: row wrap;
+    gap: 8px;
+}
+
+.custom-card-grid > .card {
+    flex: 0 0 200px;
+}

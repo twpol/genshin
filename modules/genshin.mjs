@@ -6,6 +6,8 @@
     North America   4AM UTC-5
 */
 
+import { $ } from "./elements.mjs";
+
 const SERVER_ASIA = "Asia";
 const SERVER_EU = "Europe";
 const SERVER_NA = "North America";
@@ -21,6 +23,15 @@ export function getUserServer() {
 
 export function getUserDay() {
     return WEEKDAYS[getServerDate(getUserServer()).weekday];
+}
+
+export function getCharacterCard(character) {
+    return $(
+        "div",
+        { class: "card text-bg-light" },
+        $("img", { class: "card-img-top", src: character.images.cover1 }),
+        $("div", { class: "card-body" }, $("h5", { class: "card-title" }, character.name))
+    );
 }
 
 function getServerDate(server) {

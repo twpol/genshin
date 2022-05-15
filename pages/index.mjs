@@ -1,5 +1,5 @@
-import { $, getElements } from "../modules/elements.mjs";
-import { getUserDay, getUserServer } from "../modules/genshin.mjs";
+import { getElements } from "../modules/elements.mjs";
+import { getCharacterCard, getUserDay, getUserServer } from "../modules/genshin.mjs";
 
 const e = getElements();
 
@@ -9,12 +9,12 @@ const day = getUserDay();
 e.user.server.innerText = server;
 e.user.day.innerText = day;
 
-const characters = GenshinDb.characters("names", {
+const characterNames = GenshinDb.characters("names", {
     matchCategories: true,
 });
 
-for (const character of characters) {
-    const talents = GenshinDb.talents(character);
+for (const characterName of characterNames) {
+    const talents = GenshinDb.talents(characterName);
     if (!talents) continue;
 
     const talentMaterials = new Set(
@@ -31,6 +31,7 @@ for (const character of characters) {
     );
 
     if (talentDays.has(day)) {
-        e.characters.append($("li", { class: "list-group-item" }, character));
+        const character = GenshinDb.characters(characterName);
+        e.characters.append(getCharacterCard(character));
     }
 }
