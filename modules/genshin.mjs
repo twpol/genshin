@@ -12,6 +12,7 @@ const SERVER_ASIA = "Asia";
 const SERVER_EU = "Europe";
 const SERVER_NA = "North America";
 const WEEKDAYS = [null, "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
+const ASCENSIONS = [20, 40, 50, 60, 70, 80];
 
 // Try and guess which server the user is likely to be using from their timezone
 export function getUserServer() {
@@ -53,6 +54,14 @@ export function getMaterialCard(material, count) {
         $("div", { class: "rarity" }, ...repeat(material.rarity, () => $("i", { class: "bi bi-star-fill" }))),
         ...(typeof count === "number" ? [$("div", { class: "card-footer quantity" }, count)] : [])
     );
+}
+
+export function getCorrectAscension(data) {
+    const ascension = ASCENSIONS.findIndex((a) => a >= data.level);
+    if (data.level === ASCENSIONS[ascension]) {
+        return Math.min(Math.max(data.ascension, ascension), ascension + 1);
+    }
+    return ascension;
 }
 
 export function sort(a, b) {

@@ -1,5 +1,5 @@
 import { $, getElements, loadForm, saveForm } from "../modules/elements.mjs";
-import { getWeaponCard, sort } from "../modules/genshin.mjs";
+import { getCorrectAscension, getWeaponCard, sort } from "../modules/genshin.mjs";
 import { load, save } from "../modules/storage.mjs";
 
 const e = getElements();
@@ -40,6 +40,7 @@ e.weapon.edit.dialog.addEventListener("close", () => {
         displayWeapons();
     } else if (returnValue === "save") {
         saveForm(e.weapon.edit, data[name]);
+        data[name].ascension = getCorrectAscension(data[name]);
         save(data);
         displayWeapons();
     }

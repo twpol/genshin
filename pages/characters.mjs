@@ -1,5 +1,5 @@
 import { $, getElements, loadForm, saveForm } from "../modules/elements.mjs";
-import { getCharacterCard, sort } from "../modules/genshin.mjs";
+import { getCharacterCard, getCorrectAscension, sort } from "../modules/genshin.mjs";
 import { load, save } from "../modules/storage.mjs";
 
 const e = getElements();
@@ -47,6 +47,7 @@ e.character.edit.dialog.addEventListener("close", () => {
         displayCharacters();
     } else if (returnValue === "save") {
         saveForm(e.character.edit, data[name]);
+        data[name].ascension = getCorrectAscension(data[name]);
         save(data);
         displayCharacters();
     }
