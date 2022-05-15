@@ -20,12 +20,13 @@
                 <div class="navbar-nav">
                     <a class="nav-link" href="./">Home</a>
                     <a class="nav-link active" aria-current="page" href="./inventory">Inventory</a>
+                    <a class="nav-link" href="./characters">Characters</a>
                 </div>
             </div>
         </nav>
 
         <h2>Inventory</h2>
-        <div class="custom-card-grid" id="inventory"></div>
+        <div class="custom-card-grid editable" id="inventory"></div>
 
         <h2>Add material</h2>
         <form id="material-form">
@@ -39,10 +40,12 @@
 
         <dialog id="material-edit-dialog">
             <form method="dialog">
-                <label class="form-label"
-                    >Quantity:
-                    <input type="number" min="0" class="form-control" id="material-edit-quantity" />
-                </label>
+                <div class="mb-3">
+                    <label class="form-label w-100"
+                        >Quantity:
+                        <input type="number" min="0" class="form-control" id="material-edit-quantity" />
+                    </label>
+                </div>
                 <div>
                     <button class="btn btn-primary" value="save">Save</button>
                     <button class="btn btn-secondary" value="cancel">Cancel</button>

@@ -25,13 +25,13 @@ export function getUserDay() {
     return WEEKDAYS[getServerDate(getUserServer()).weekday];
 }
 
-export function getCharacterCard(character) {
+export function getCharacterCard(character, data) {
     return $(
         "div",
         { class: `card text-dark card-genshin character rarity-${character.rarity}`, title: character.name },
         $("img", { class: "card-img-top image", src: character.images.icon }),
         $("div", { class: "rarity" }, ...repeat(character.rarity, () => $("i", { class: "bi bi-star-fill" }))),
-        $("div", { class: "card-body name" }, character.name)
+        $("div", { class: "card-body name" }, data.level ? `Lv. ${data.level}` : character.name)
     );
 }
 
@@ -56,7 +56,10 @@ export function getMaterialCard(material, count) {
 }
 
 export function sort(a, b) {
-    return b.sortorder - a.sortorder;
+    if (a.sortorder || b.sortorder) return b.sortorder - a.sortorder;
+    if (a.name < b.name) return -1;
+    if (a.name > b.name) return 1;
+    return 0;
 }
 
 function getServerDate(server) {

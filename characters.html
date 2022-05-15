@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <title>Genshin Impact</title>
+        <link
+            href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.0-beta1/dist/css/bootstrap.min.css"
+            rel="stylesheet"
+            integrity="sha384-0evHe/X+R7YkIZDRvuzKMRqM+OrBnVFBL6DOitfPri4tjfHxaWutUpFmBp4vmVor"
+            crossorigin="anonymous"
+        />
+        <link href="index.css" rel="stylesheet" />
+    </head>
+
+    <body class="container-fluid">
+        <h1>Genshin Impact</h1>
+        <nav class="navbar navbar-expand navbar-light bg-light mb-3">
+            <div class="container-fluid">
+                <div class="navbar-nav">
+                    <a class="nav-link" href="./">Home</a>
+                    <a class="nav-link" href="./inventory">Inventory</a>
+                    <a class="nav-link active" aria-current="page" href="./characters">Characters</a>
+                </div>
+            </div>
+        </nav>
+
+        <h2>Characters</h2>
+        <div class="custom-card-grid editable" id="characters"></div>
+
+        <h2>Add characters</h2>
+        <form id="character-form">
+            <label class="form-label">
+                Select a character
+                <input class="form-control" list="character-list" id="character-select" />
+            </label>
+            <datalist id="character-list"></datalist>
+            <button type="submit" class="btn btn-primary">Add</button>
+        </form>
+
+        <dialog id="character-edit-dialog">
+            <form method="dialog">
+                <div class="mb-3">
+                    <label class="form-label w-100"
+                        >Level:
+                        <input type="number" min="1" max="90" class="form-control" id="character-edit-level" />
+                    </label>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label w-100"
+                        >Ascension:
+                        <input type="number" min="0" max="6" class="form-control" id="character-edit-ascension" />
+                    </label>
+                </div>
+                <div id="character-edit-talents">
+                    <div class="mb-3">
+                        <label class="form-label w-100"
+                            >Talent (<span id="character-edit-talent1name"></span>):
+                            <input type="number" min="1" max="10" class="form-control" id="character-edit-talent1" />
+                        </label>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label w-100"
+                            >Talent (<span id="character-edit-talent2name"></span>):
+                            <input type="number" min="1" max="10" class="form-control" id="character-edit-talent2" />
+                        </label>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label w-100"
+                            >Talent (<span id="character-edit-talent3name"></span>):
+                            <input type="number" min="1" max="10" class="form-control" id="character-edit-talent3" />
+                        </label>
+                    </div>
+                </div>
+                <div>
+                    <button class="btn btn-primary" value="save">Save</button>
+                    <button class="btn btn-secondary" value="cancel">Cancel</button>
+                    <button class="btn btn-danger" value="delete">Delete</button>
+                </div>
+            </form>
+        </dialog>
+
+        <footer class="py-3 text-muted">
+            <hr />
+            Copyright 2022
+            <a class="text-reset" href="https://github.com/twpol">James Ross</a>,
+            <a class="text-reset" href="https://github.com/twpol/genshin-impact/tree/gh-pages">source code on GitHub</a>
+        </footer>
+
+        <script
+            src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.0-beta1/dist/js/bootstrap.bundle.min.js"
+            integrity="sha384-pprn3073KE6tl6bjs2QrFaJGz5/SUsLqktiwsUTF55Jfv3qYSDhgCecCxMW52nD2"
+            crossorigin="anonymous"
+        ></script>
+        <script src="https://cdn.jsdelivr.net/gh/theBowja/genshin-db@main/dist/genshindb-none.js"></script>
+        <script src="https://cdn.jsdelivr.net/gh/theBowja/genshin-db@main/dist/data/scripts/english-characters.js"></script>
+        <script src="https://cdn.jsdelivr.net/gh/theBowja/genshin-db@main/dist/data/scripts/english-talents.js"></script>
+        <script src="pages/characters.mjs" type="module"></script>
+    </body>
+</html>

@@ -51,6 +51,7 @@
     text-align: center;
 }
 
-.card-genshin > .quantity {
+.editable .card-genshin > .name,
+.editable .card-genshin > .quantity {
     cursor: pointer;
 }

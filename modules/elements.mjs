@@ -25,3 +25,23 @@ export function $(name, ...children) {
     element.append(...children);
     return element;
 }
+
+export function loadForm(form, data) {
+    for (const [name, element] of Object.entries(form)) {
+        if (element.getAttribute("type") === "number") {
+            if (typeof data[name] === "number") {
+                element.value = data[name];
+            } else {
+                element.value = element.getAttribute("min");
+            }
+        }
+    }
+}
+
+export function saveForm(form, data) {
+    for (const [name, element] of Object.entries(form)) {
+        if (element.getAttribute("type") === "number") {
+            data[name] = Number(element.value);
+        }
+    }
+}
