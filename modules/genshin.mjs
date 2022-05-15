@@ -77,5 +77,5 @@ function getDateWithOffset(utcOffset) {
 }
 
 function repeat(count, fn) {
-    return Array.from(Array(Number(count)).keys()).map((index) => fn(index));
+    return Array.from(Array(Number(count) || 0).keys()).map((index) => fn(index));
 }
