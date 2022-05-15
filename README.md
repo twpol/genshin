@@ -1,2 +1,3 @@
-# genshin
-A website for browsing Genshin Impact data
+# Genshin Impact
+
+A website for browsing Genshin Impact data.
