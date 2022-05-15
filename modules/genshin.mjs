@@ -28,32 +28,30 @@ export function getUserDay() {
 export function getCharacterCard(character) {
     return $(
         "div",
-        { class: "card text-bg-light card-genshin-character" },
-        $("img", { class: "card-img-top", src: character.images.cover1 }),
-        $("div", { class: "card-body" }, $("h5", { class: "card-title" }, character.name))
+        { class: `card text-dark card-genshin character rarity-${character.rarity}`, title: character.name },
+        $("img", { class: "card-img-top image", src: character.images.icon }),
+        $("div", { class: "rarity" }, ...repeat(character.rarity, () => $("i", { class: "bi bi-star-fill" }))),
+        $("div", { class: "card-body name" }, character.name)
     );
 }
 
 export function getWeaponCard(weapon) {
     return $(
         "div",
-        { class: "card text-bg-light card-genshin-weapon" },
-        $("img", { class: "card-img-top", src: weapon.images.image }),
-        $("div", { class: "card-body" }, $("h5", { class: "card-title" }, weapon.name))
+        { class: `card text-dark card-genshin weapon rarity-${weapon.rarity}`, title: weapon.name },
+        $("img", { class: "card-img-top image", src: weapon.images.icon }),
+        $("div", { class: "rarity" }, ...repeat(weapon.rarity, () => $("i", { class: "bi bi-star-fill" }))),
+        $("div", { class: "card-body name" }, weapon.name)
     );
 }
 
 export function getMaterialCard(material, count) {
     return $(
         "div",
-        { class: `card text-dark border-0 card-genshin-material rarity-${material.rarity}`, title: material.name },
-        $("img", { class: "card-img-top", src: material.images.fandom }),
-        $(
-            "div",
-            { class: "card-genshin-rarity" },
-            ...repeat(material.rarity, () => $("i", { class: "bi bi-star-fill" }))
-        ),
-        ...(typeof count === "number" ? [$("div", { class: "card-footer border-0 text-center" }, count)] : [])
+        { class: `card text-dark card-genshin material rarity-${material.rarity}`, title: material.name },
+        $("img", { class: "card-img-top image", src: material.images.fandom }),
+        $("div", { class: "rarity" }, ...repeat(material.rarity, () => $("i", { class: "bi bi-star-fill" }))),
+        ...(typeof count === "number" ? [$("div", { class: "card-footer quantity" }, count)] : [])
     );
 }
 

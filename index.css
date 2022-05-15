@@ -6,43 +6,47 @@
     gap: 8px;
 }
 
-.custom-card-grid > .card {
-    flex: 0 0 200px;
+.custom-card-grid > .card-genshin {
+    flex: 0 0 128px;
 }
 
-.custom-card-grid > .card-genshin-material {
-    flex: 0 0 100px;
-}
-
-.card-genshin-rarity {
-    position: relative;
-    height: 0;
-    text-align: center;
-    top: -16px;
-    color: #fc3;
-}
-
-.card-genshin-material {
+.card-genshin {
+    border: none;
     background: #eed;
 }
 
-.card-genshin-material > .card-img-top {
-    border-bottom-right-radius: 15px;
-    padding-bottom: 8px;
-}
-
-.card-genshin-material.rarity-1 > .card-img-top {
+.card-genshin.rarity-1 > .card-img-top {
     background: #777;
 }
-.card-genshin-material.rarity-2 > .card-img-top {
+.card-genshin.rarity-2 > .card-img-top {
     background: #588;
 }
-.card-genshin-material.rarity-3 > .card-img-top {
+.card-genshin.rarity-3 > .card-img-top {
     background: #579;
 }
-.card-genshin-material.rarity-4 > .card-img-top {
+.card-genshin.rarity-4 > .card-img-top {
     background: #86a;
 }
-.card-genshin-material.rarity-5 > .card-img-top {
+.card-genshin.rarity-5 > .card-img-top {
     background: #b73;
+}
+
+.card-genshin > .image {
+    border-bottom-right-radius: 15px;
+}
+
+.card-genshin > .rarity {
+    position: relative;
+    height: 0;
+    top: -20px;
+    color: #fc3;
+    font-size: 20px;
+    text-align: center;
+}
+
+.card-genshin > .name,
+.card-genshin > .quantity {
+    border: none;
+    padding: 4px;
+    text-align: center;
 }
