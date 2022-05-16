@@ -1,5 +1,5 @@
 import { $, getElements, loadForm, saveForm } from "../modules/elements.mjs";
-import { getCorrectAscension, getWeaponCard, sort } from "../modules/genshin.mjs";
+import { getCard, getCorrectAscension, sort } from "../modules/genshin.mjs";
 import { load, save } from "../modules/storage.mjs";
 
 const e = getElements();
@@ -10,7 +10,7 @@ function displayWeapons() {
     const weapons = Object.keys(data).map((name) => GenshinDb.weapons(name));
     weapons.sort(sort);
     for (const weapon of weapons) {
-        e.weapons.append(getWeaponCard(weapon, data[weapon.name]));
+        e.weapons.append(getCard(weapon, data[weapon.name]));
     }
 }
 

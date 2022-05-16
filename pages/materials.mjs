@@ -1,5 +1,5 @@
 import { $, getElements } from "../modules/elements.mjs";
-import { getMaterialCard, sort } from "../modules/genshin.mjs";
+import { getCard, sort } from "../modules/genshin.mjs";
 import { load, save } from "../modules/storage.mjs";
 
 const e = getElements();
@@ -10,7 +10,7 @@ function displayMaterials() {
     const materials = Object.keys(data).map((name) => GenshinDb.materials(name));
     materials.sort(sort);
     for (const material of materials) {
-        e.materials.append(getMaterialCard(material, data[material.name]));
+        e.materials.append(getCard(material, data[material.name]));
     }
 }
 

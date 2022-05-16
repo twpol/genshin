@@ -26,7 +26,14 @@ export function getUserDay() {
     return WEEKDAYS[getServerDate(getUserServer()).weekday];
 }
 
-export function getCharacterCard(character, data) {
+export function getCard(object, data) {
+    if ("birthday" in object) return getCharacterCard(object, data);
+    if ("weaponmaterialtype" in object) return getWeaponCard(object, data);
+    if ("materialtype" in object) return getMaterialCard(object, data);
+    throw new Error("Unknown object");
+}
+
+function getCharacterCard(character, data) {
     return $(
         "div",
         { class: `card text-dark card-genshin character rarity-${character.rarity}`, title: character.name },
@@ -36,7 +43,7 @@ export function getCharacterCard(character, data) {
     );
 }
 
-export function getWeaponCard(weapon, data) {
+function getWeaponCard(weapon, data) {
     return $(
         "div",
         { class: `card text-dark card-genshin weapon rarity-${weapon.rarity}`, title: weapon.name },
@@ -46,7 +53,7 @@ export function getWeaponCard(weapon, data) {
     );
 }
 
-export function getMaterialCard(material, count) {
+function getMaterialCard(material, count) {
     return $(
         "div",
         { class: `card text-dark card-genshin material rarity-${material.rarity}`, title: material.name },

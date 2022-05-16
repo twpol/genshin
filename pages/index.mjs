@@ -1,5 +1,5 @@
 import { getElements } from "../modules/elements.mjs";
-import { getCharacterCard, getUserDay, getUserServer, getWeaponCard } from "../modules/genshin.mjs";
+import { getCard, getUserDay, getUserServer } from "../modules/genshin.mjs";
 
 const e = getElements();
 
@@ -32,7 +32,7 @@ for (const characterName of characterNames) {
 
     if (talentMaterialDays.has(day)) {
         const character = GenshinDb.characters(characterName);
-        e.talents.append(getCharacterCard(character));
+        e.talents.append(getCard(character));
     }
 }
 
@@ -57,6 +57,6 @@ for (const weaponName of weaponNames) {
     );
 
     if (weaponMaterialDays.has(day)) {
-        e.weapons.append(getWeaponCard(weapon));
+        e.weapons.append(getCard(weapon));
     }
 }
