@@ -28,15 +28,14 @@
         </nav>
 
         <h2>Targets</h2>
-        <div class="custom-card-grid editable" id="targets"></div>
+        <div class="custom-card-grid editable" id="target-list"></div>
 
         <h2>Add targets</h2>
-        <form id="target-form">
+        <form id="target-add-form">
             <label class="form-label">
                 Select a target
-                <input class="form-control" list="target-list" id="target-select" />
+                <select class="form-control" id="target-add-select"></select>
             </label>
-            <datalist id="target-list"></datalist>
             <button type="submit" class="btn btn-primary">Add</button>
         </form>
 
@@ -53,6 +52,26 @@
                         Ascension:
                         <input type="number" min="0" max="6" class="form-control" id="target-edit-ascension" />
                     </label>
+                </div>
+                <div id="target-edit-talents">
+                    <div class="mb-3">
+                        <label class="form-label w-100">
+                            Talent (<span id="target-edit-talent1name"></span>):
+                            <input type="number" min="1" max="10" class="form-control" id="target-edit-talent1" />
+                        </label>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label w-100">
+                            Talent (<span id="target-edit-talent2name"></span>):
+                            <input type="number" min="1" max="10" class="form-control" id="target-edit-talent2" />
+                        </label>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label w-100">
+                            Talent (<span id="target-edit-talent3name"></span>):
+                            <input type="number" min="1" max="10" class="form-control" id="target-edit-talent3" />
+                        </label>
+                    </div>
                 </div>
                 <div class="form-check mb-3" id="target-edit-weapons">
                     <input class="form-check-input" type="checkbox" id="target-edit-weapon" />

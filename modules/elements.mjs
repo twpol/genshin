@@ -19,7 +19,9 @@ export function $(name, ...children) {
     if (children.length && Object.getPrototypeOf(children[0]) === Object.prototype) {
         const attributes = children.shift();
         for (const attribute of Object.keys(attributes)) {
-            element.setAttribute(attribute, attributes[attribute]);
+            if (typeof attributes[attribute] !== "undefined") {
+                element.setAttribute(attribute, attributes[attribute]);
+            }
         }
     }
     element.append(...children);
@@ -28,6 +30,7 @@ export function $(name, ...children) {
 
 export function loadForm(form, data) {
     for (const [name, element] of Object.entries(form)) {
+        if (isHiddenInDialog(element)) continue;
         if (element.getAttribute("type") === "number") {
             if (typeof data[name] === "number") {
                 element.value = data[name];
@@ -44,12 +47,22 @@ export function loadForm(form, data) {
 
 export function saveForm(form, data) {
     for (const [name, element] of Object.entries(form)) {
+        if (isHiddenInDialog(element)) continue;
         if (element.getAttribute("type") === "number") {
             data[name] = Number(element.value);
         } else if (element.nodeName === "SELECT") {
             data[name] = element.value;
         } else if (element.getAttribute("type") === "checkbox") {
-            data[name] = element.checked ? true : undefined;
+            data[name] = element.checked;
         }
     }
+}
+
+function isHiddenInDialog(element) {
+    while (element) {
+        if (element.nodeName === "DIALOG") return false;
+        if (element.style.display === "none") return true;
+        element = element.parentNode;
+    }
+    throw new Error("isHiddenInDialog can only be called on elements inside <dialog>");
 }
