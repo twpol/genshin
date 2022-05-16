@@ -12,6 +12,12 @@ function displayCharacters() {
     for (const character of characters) {
         e.characters.append(getCharacterCard(character, data[character.name]));
     }
+
+    const weapons = load("weapons");
+    e.weapon.list.replaceChildren();
+    for (const weaponName of Object.keys(weapons).sort()) {
+        e.weapon.list.append($("option", { value: weaponName }));
+    }
 }
 
 const characterNames = GenshinDb.characters("names", { matchCategories: true });
