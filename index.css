@@ -10,6 +10,10 @@
     flex: 0 0 128px;
 }
 
+.custom-card-grid > .card-genshin > .card-img-top {
+    height: 128px;
+}
+
 .card-genshin {
     border: none;
     background: #eed;
