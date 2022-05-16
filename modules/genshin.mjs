@@ -6,7 +6,8 @@
     North America   4AM UTC-5
 */
 
-import { $ } from "./elements.mjs";
+import { $, loadForm, saveForm } from "./elements.mjs";
+import { load, save } from "./storage.mjs";
 
 const SERVER_ASIA = "Asia";
 const SERVER_EU = "Europe";
@@ -26,11 +27,19 @@ export function getUserDay() {
     return WEEKDAYS[getServerDate(getUserServer()).weekday];
 }
 
+export function getGenshinType(object) {
+    if ("birthday" in object) return "character";
+    if ("weaponmaterialtype" in object) return "weapon";
+    if ("materialtype" in object) return "material";
+    throw new Error("Unknown Genshin object");
+}
+
 export function getCard(object, data) {
-    if ("birthday" in object) return getCharacterCard(object, data);
-    if ("weaponmaterialtype" in object) return getWeaponCard(object, data);
-    if ("materialtype" in object) return getMaterialCard(object, data);
-    throw new Error("Unknown object");
+    const type = getGenshinType(object);
+    if (type === "character") return getCharacterCard(object, data);
+    if (type === "weapon") return getWeaponCard(object, data);
+    if (type === "material") return getMaterialCard(object, data);
+    throw new Error(`Unknown Genshin object type ${type}`);
 }
 
 function getCharacterCard(character, data) {
@@ -39,7 +48,7 @@ function getCharacterCard(character, data) {
         { class: `card text-dark card-genshin character rarity-${character.rarity}`, title: character.name },
         $("img", { class: "card-img-top image", src: character.images.icon }),
         $("div", { class: "rarity" }, ...repeat(character.rarity, () => $("i", { class: "bi bi-star-fill" }))),
-        $("div", { class: "card-body name" }, data && data.level ? `Lv. ${data.level}` : character.name)
+        $("div", { class: "card-body name" }, data ? `Lv. ${data.level}` : character.name)
     );
 }
 
@@ -49,18 +58,97 @@ function getWeaponCard(weapon, data) {
         { class: `card text-dark card-genshin weapon rarity-${weapon.rarity}`, title: weapon.name },
         $("img", { class: "card-img-top image", src: weapon.images.icon }),
         $("div", { class: "rarity" }, ...repeat(weapon.rarity, () => $("i", { class: "bi bi-star-fill" }))),
-        $("div", { class: "card-body name" }, data && data.level ? `Lv. ${data.level}` : weapon.name)
+        $("div", { class: "card-body name" }, data ? `Lv. ${data.level}` : weapon.name)
     );
 }
 
-function getMaterialCard(material, count) {
+function getMaterialCard(material, data) {
     return $(
         "div",
         { class: `card text-dark card-genshin material rarity-${material.rarity}`, title: material.name },
         $("img", { class: "card-img-top image", src: material.images.fandom }),
         $("div", { class: "rarity" }, ...repeat(material.rarity, () => $("i", { class: "bi bi-star-fill" }))),
-        ...(typeof count === "number" ? [$("div", { class: "card-footer quantity" }, count)] : [])
+        $("div", { class: "card-body name" }, data ? data.quantity : material.name)
     );
+}
+
+export function setGenshinUserList(e, type, defaultValue) {
+    const base = e[type];
+    const types = `${type}s`;
+
+    function display() {
+        base.list.replaceChildren();
+        const data = load(types);
+        const items = Object.keys(data).map((name) => GenshinDb[type](name));
+        items.sort(sort);
+        for (const item of items) {
+            base.list.append(getCard(item, data[item.name]));
+        }
+    }
+
+    base.list.addEventListener("click", (event) => {
+        const card = event.target.closest(".card-genshin");
+        if (!card) return;
+
+        const data = load(types);
+        const name = card.title;
+        base.edit.dialog.dataset.name = name;
+        if (base.edit.talents) {
+            const talents = GenshinDb.talents(name);
+            base.edit.talents.style.display = talents ? "" : "none";
+            if (talents) {
+                base.edit.talent1name.innerText = talents.combat1.name;
+                base.edit.talent2name.innerText = talents.combat2.name;
+                base.edit.talent3name.innerText = talents.combat3.name;
+            }
+        }
+        if (base.edit.weapon) {
+            const weapons = load("weapons");
+            base.edit.weapon.replaceChildren();
+            base.edit.weapon.append($("option", { value: "" }, "(none)"));
+            for (const weaponName of Object.keys(weapons).sort()) {
+                base.edit.weapon.append($("option", weaponName));
+            }
+        }
+        loadForm(base.edit, data[name]);
+        base.edit.dialog.returnValue = "";
+        base.edit.dialog.showModal();
+    });
+
+    base.edit.dialog.addEventListener("close", () => {
+        const returnValue = base.edit.dialog.returnValue;
+        const data = load(types);
+        const name = base.edit.dialog.dataset.name;
+        if (returnValue === "delete") {
+            delete data[name];
+            save(data);
+            display();
+        } else if (returnValue === "save") {
+            saveForm(base.edit, data[name]);
+            if ("ascension" in data[name]) data[name].ascension = getCorrectAscension(data[name]);
+            save(data);
+            display();
+        }
+    });
+
+    base.add.form.addEventListener("submit", (event) => {
+        event.preventDefault();
+        const option = base.add.select.selectedOptions[0];
+        base.add.select.selectedIndex = 0;
+
+        const data = load(types);
+        const name = option.textContent;
+
+        if (!(name in data)) data[name] = defaultValue;
+        save(data);
+        display();
+        base.list.querySelector(`[title="${name}"]`).click();
+    });
+    for (const name of GenshinDb[type]("names", { matchCategories: true })) {
+        base.add.select.append($("option", name));
+    }
+
+    display();
 }
 
 export function getCorrectAscension(data) {

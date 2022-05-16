@@ -28,15 +28,14 @@
         </nav>
 
         <h2>Materials</h2>
-        <div class="custom-card-grid editable" id="materials"></div>
+        <div class="custom-card-grid editable" id="material-list"></div>
 
         <h2>Add material</h2>
-        <form id="material-form">
+        <form id="material-add-form">
             <label class="form-label">
                 Select a material
-                <input class="form-control" list="material-list" id="material-select" />
+                <select class="form-control" id="material-add-select"></select>
             </label>
-            <datalist id="material-list"></datalist>
             <button type="submit" class="btn btn-primary">Add</button>
         </form>
 

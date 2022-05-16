@@ -34,13 +34,8 @@ export function loadForm(form, data) {
             } else {
                 element.value = element.getAttribute("min");
             }
-        } else if (element.getAttribute("list")) {
-            const item = getList(element).find((e) => e.value === data[name]);
-            if (item) {
-                element.value = item.value;
-            } else {
-                element.value = "";
-            }
+        } else if (element.nodeName === "SELECT") {
+            element.value = data[name];
         } else if (element.getAttribute("type") === "checkbox") {
             element.checked = !!data[name];
         }
@@ -51,19 +46,10 @@ export function saveForm(form, data) {
     for (const [name, element] of Object.entries(form)) {
         if (element.getAttribute("type") === "number") {
             data[name] = Number(element.value);
-        } else if (element.getAttribute("list")) {
-            const item = getList(element).find((e) => e.value === element.value);
-            if (item) {
-                data[name] = item.value;
-            } else {
-                delete data[name];
-            }
+        } else if (element.nodeName === "SELECT") {
+            data[name] = element.value;
         } else if (element.getAttribute("type") === "checkbox") {
             data[name] = element.checked ? true : undefined;
         }
     }
-}
-
-function getList(element) {
-    return Array.from(document.getElementById(element.getAttribute("list")).children);
 }

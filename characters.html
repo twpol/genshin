@@ -28,15 +28,14 @@
         </nav>
 
         <h2>Characters</h2>
-        <div class="custom-card-grid editable" id="characters"></div>
+        <div class="custom-card-grid editable" id="character-list"></div>
 
         <h2>Add characters</h2>
-        <form id="character-form">
+        <form id="character-add-form">
             <label class="form-label">
                 Select a character
-                <input class="form-control" list="character-list" id="character-select" />
+                <select class="form-control" id="character-add-select"></select>
             </label>
-            <datalist id="character-list"></datalist>
             <button type="submit" class="btn btn-primary">Add</button>
         </form>
 
@@ -77,9 +76,8 @@
                 <div class="mb-3">
                     <label class="form-label w-100">
                         Weapon:
-                        <input class="form-control" list="weapon-list" id="character-edit-weapon" />
+                        <select class="form-control" id="character-edit-weapon"></select>
                     </label>
-                    <datalist id="weapon-list"></datalist>
                 </div>
                 <div>
                     <button class="btn btn-primary" value="save">Save</button>

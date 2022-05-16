@@ -28,15 +28,14 @@
         </nav>
 
         <h2>Weapons</h2>
-        <div class="custom-card-grid editable" id="weapons"></div>
+        <div class="custom-card-grid editable" id="weapon-list"></div>
 
         <h2>Add weapons</h2>
-        <form id="weapon-form">
+        <form id="weapon-add-form">
             <label class="form-label">
                 Select a weapon
-                <input class="form-control" list="weapon-list" id="weapon-select" />
+                <select class="form-control" id="weapon-add-select"></select>
             </label>
-            <datalist id="weapon-list"></datalist>
             <button type="submit" class="btn btn-primary">Add</button>
         </form>
 
