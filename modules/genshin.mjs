@@ -165,7 +165,7 @@ export function setGenshinUserList(e, type, defaultValue) {
         data[name] = { type: option.dataset.type, ...defaultValue, ...data[name] };
         save(data);
         display();
-        base.list.querySelector(`[title="${name}"]`).click();
+        base.list.querySelector(`[data-key="${name}"]`).click();
     });
     if (type === "target") {
         for (const name of Object.keys(load("characters"))) {
