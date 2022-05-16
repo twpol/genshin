@@ -7,10 +7,15 @@ const e = getElements();
 function displayTargets() {
     e.targets.replaceChildren();
     const data = load("targets");
+    const characters = load("characters");
     const targets = Object.keys(data).map((name) => GenshinDb[data[name].type](name));
     targets.sort(sort);
     for (const target of targets) {
         e.targets.append(getCard(target, data[target.name]));
+        if (data[target.name].weapon && characters[target.name].weapon) {
+            const weapon = GenshinDb.weapons(characters[target.name].weapon);
+            e.targets.append(getCard(weapon, data[target.name]));
+        }
     }
 }
 
@@ -25,6 +30,7 @@ e.targets.addEventListener("click", (event) => {
     if (event.target.classList.contains("name")) {
         const data = load("targets");
         const name = event.target.closest(".card-genshin").title;
+        if (!(name in data)) return;
         e.target.edit.dialog.setAttribute("name", name);
         e.target.edit.weapons.style.display = data[name].type === "character" ? "" : "none";
         loadForm(e.target.edit, data[name]);
