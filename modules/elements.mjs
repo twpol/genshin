@@ -41,6 +41,8 @@ export function loadForm(form, data) {
             } else {
                 element.value = "";
             }
+        } else if (element.getAttribute("type") === "checkbox") {
+            element.checked = !!data[name];
         }
     }
 }
@@ -56,6 +58,8 @@ export function saveForm(form, data) {
             } else {
                 delete data[name];
             }
+        } else if (element.getAttribute("type") === "checkbox") {
+            data[name] = element.checked ? true : undefined;
         }
     }
 }
