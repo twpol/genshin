@@ -12,7 +12,7 @@ const SERVER_ASIA = "Asia";
 const SERVER_EU = "Europe";
 const SERVER_NA = "North America";
 const WEEKDAYS = [null, "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
-const ASCENSIONS = [20, 40, 50, 60, 70, 80];
+const ASCENSIONS = [20, 40, 50, 60, 70, 80, Infinity];
 
 // Try and guess which server the user is likely to be using from their timezone
 export function getUserServer() {
