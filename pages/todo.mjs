@@ -1,5 +1,5 @@
 import { getElements } from "../modules/elements.mjs";
-import { getCard, getCharacterLevelExperience, getWeaponLevelExperience } from "../modules/genshin.mjs";
+import { getCard, getCharacterLevelExperience, getWeaponLevelExperience, sort } from "../modules/genshin.mjs";
 import { KEY, load } from "../modules/storage.mjs";
 
 const e = getElements();
@@ -34,19 +34,6 @@ for (const target of Object.values(targets)) {
     const weaponSource = weapons[weapon];
     const weaponTarget = weaponSource ? target : null;
     const weaponData = GenshinDb.weapon(weapon);
-
-    if (character)
-        e.todo.list.append(
-            getCard(characterData, {
-                label: `${target.type[0]} ${characterSource.level} --> ${characterTarget.level}`,
-            })
-        );
-    if (weapon)
-        e.todo.list.append(
-            getCard(weaponData, {
-                label: `${target.type[0]} ${weaponSource.level} --> ${weaponTarget.level}`,
-            })
-        );
 
     if (character) {
         if (characterSource.level < characterTarget.level) {
@@ -101,4 +88,22 @@ for (const target of Object.values(targets)) {
     }
 }
 
-console.log(required);
+const todo = new Array();
+for (const [materialName, desired] of Object.entries(required)) {
+    const material = GenshinDb.material(materialName);
+    if (material) {
+        const inventory = materials[materialName]?.quantity || 0;
+        todo.push({ ...material, label: `${inventory} / ${desired}` });
+    } else {
+        // Special item... Character EXP Material, Weapon Enhancement Material
+        for (const material of GenshinDb.materials(materialName, { matchCategories: true }).map(GenshinDb.material)) {
+            const inventory = materials[materialName]?.quantity || 0;
+            const provides = parseInt(material.description.match(/Gives ([\d,]+) EXP/)[1].replace(",", ""));
+            todo.push({ ...material, label: `${inventory} / ≤${Math.ceil(desired / provides)}` });
+        }
+    }
+}
+todo.sort(sort);
+for (const material of todo) {
+    e.todo.list.append(getCard(material, material));
+}
