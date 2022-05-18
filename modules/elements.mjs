@@ -1,9 +1,20 @@
 export function getElements() {
+    if (location.hostname === "localhost") fixLocalhostLinks();
     const e = Object.create(null);
     for (const element of document.querySelectorAll("[id]")) {
         setByPath(e, element.id.split("-"), element);
     }
     return e;
+}
+
+function fixLocalhostLinks() {
+    for (const link of document.querySelectorAll("a[href]")) {
+        if (!link.href.startsWith(location.origin)) continue;
+        const url = new URL(link.href);
+        if (url.pathname.endsWith("/")) continue;
+        url.pathname += ".html";
+        link.href = url;
+    }
 }
 
 function setByPath(root, path, value) {
