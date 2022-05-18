@@ -22,66 +22,28 @@
                     <a class="nav-link" href="./characters">Characters</a>
                     <a class="nav-link" href="./weapons">Weapons</a>
                     <a class="nav-link" href="./materials">Materials</a>
-                    <a class="nav-link active" aria-current="page" href="./targets">Targets</a>
-                    <a class="nav-link" href="./todo">To Do</a>
+                    <a class="nav-link" href="./targets">Targets</a>
+                    <a class="nav-link active" aria-current="page" href="./todo">To Do</a>
                 </div>
             </div>
         </nav>
 
-        <h2>Targets</h2>
-        <div class="custom-card-grid editable" id="target-list"></div>
+        <h2>To Do</h2>
+        <div class="custom-card-grid editable" id="todo-list"></div>
 
-        <h2>Add targets</h2>
-        <form id="target-add-form">
-            <label class="form-label">
-                Select a target
-                <select class="form-control" id="target-add-select"></select>
-            </label>
-            <button type="submit" class="btn btn-primary">Add</button>
-        </form>
+        <h2>This page is under construction</h2>
 
-        <dialog id="target-edit-dialog">
+        <dialog id="material-edit-dialog">
             <form method="dialog">
                 <div class="mb-3">
                     <label class="form-label w-100">
-                        Level:
-                        <input type="number" min="1" max="90" class="form-control" id="target-edit-level" />
+                        Quantity:
+                        <input type="number" min="0" class="form-control" id="material-edit-quantity" />
                     </label>
-                </div>
-                <div class="mb-3">
-                    <label class="form-label w-100">
-                        Ascension:
-                        <input type="number" min="0" max="6" class="form-control" id="target-edit-ascension" />
-                    </label>
-                </div>
-                <div id="target-edit-talents">
-                    <div class="mb-3">
-                        <label class="form-label w-100">
-                            Talent (<span id="target-edit-talent1name"></span>):
-                            <input type="number" min="1" max="10" class="form-control" id="target-edit-talent1" />
-                        </label>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label w-100">
-                            Talent (<span id="target-edit-talent2name"></span>):
-                            <input type="number" min="1" max="10" class="form-control" id="target-edit-talent2" />
-                        </label>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label w-100">
-                            Talent (<span id="target-edit-talent3name"></span>):
-                            <input type="number" min="1" max="10" class="form-control" id="target-edit-talent3" />
-                        </label>
-                    </div>
-                </div>
-                <div class="form-check mb-3" id="target-edit-weapons">
-                    <input class="form-check-input" type="checkbox" id="target-edit-weapon" />
-                    <label class="form-check-label" for="target-edit-weapon">Include weapon</label>
                 </div>
                 <div>
                     <button class="btn btn-primary" value="save">Save</button>
                     <button class="btn btn-secondary" value="cancel">Cancel</button>
-                    <button class="btn btn-danger" value="delete">Delete</button>
                 </div>
             </form>
         </dialog>
@@ -103,6 +65,6 @@
         <script src="https://cdn.jsdelivr.net/gh/theBowja/genshin-db@main/dist/data/scripts/english-materials.js"></script>
         <script src="https://cdn.jsdelivr.net/gh/theBowja/genshin-db@main/dist/data/scripts/english-talents.js"></script>
         <script src="https://cdn.jsdelivr.net/gh/theBowja/genshin-db@main/dist/data/scripts/english-weapons.js"></script>
-        <script src="pages/targets.mjs" type="module"></script>
+        <script src="pages/todo.mjs" type="module"></script>
     </body>
 </html>
