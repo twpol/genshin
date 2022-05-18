@@ -53,8 +53,8 @@ for (const target of Object.values(targets)) {
             // TODO: Special consideration is needed for wasted EXP at ascension levels
             const { experience, mora } = getCharacterLevelExperience(characterSource.level, characterTarget.level);
             console.log(character, "level", characterSource.level, characterTarget.level, { experience, mora });
-            required["Character EXP"] ||= 0;
-            required["Character EXP"] += experience;
+            required["Character EXP Material"] ||= 0;
+            required["Character EXP Material"] += experience;
             required["Mora"] ||= 0;
             required["Mora"] += mora;
         }
@@ -86,8 +86,8 @@ for (const target of Object.values(targets)) {
                 experience,
                 mora,
             });
-            required["Weapon EXP"] ||= 0;
-            required["Weapon EXP"] += experience;
+            required["Weapon Enhancement Material"] ||= 0;
+            required["Weapon Enhancement Material"] += experience;
             required["Mora"] ||= 0;
             required["Mora"] += mora;
         }
