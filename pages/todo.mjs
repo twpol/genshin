@@ -39,7 +39,7 @@ for (const target of Object.values(targets)) {
         if (characterSource.level < characterTarget.level) {
             // TODO: Special consideration is needed for wasted EXP at ascension levels
             const { experience, mora } = getCharacterLevelExperience(characterSource.level, characterTarget.level);
-            console.log(character, "level", characterSource.level, characterTarget.level, { experience, mora });
+            // console.log(character, "level", characterSource.level, characterTarget.level, { experience, mora });
             required["Character EXP Material"] ||= 0;
             required["Character EXP Material"] += experience;
             required["Mora"] ||= 0;
@@ -47,7 +47,7 @@ for (const target of Object.values(targets)) {
         }
         for (let ascension = characterSource.ascension + 1; ascension <= characterTarget.ascension; ascension++) {
             for (const cost of characterData.costs[`ascend${ascension}`]) {
-                console.log(character, "ascension", ascension, cost);
+                // console.log(character, "ascension", ascension, cost);
                 required[cost.name] ||= 0;
                 required[cost.name] += cost.count;
             }
@@ -56,7 +56,7 @@ for (const target of Object.values(targets)) {
         for (const talentName of ["talent1", "talent2", "talent3"]) {
             for (let level = characterSource[talentName] + 1; level <= characterTarget[talentName]; level++) {
                 for (const cost of talent.costs[`lvl${level}`]) {
-                    console.log(character, talentName, level, cost);
+                    // console.log(character, talentName, level, cost);
                     required[cost.name] ||= 0;
                     required[cost.name] += cost.count;
                 }
@@ -72,10 +72,7 @@ for (const target of Object.values(targets)) {
                 weaponSource.level,
                 weaponTarget.level
             );
-            console.log(weapon, "level", weaponData.rarity, weaponSource.level, weaponTarget.level, {
-                experience,
-                mora,
-            });
+            // console.log(weapon, "level", weaponData.rarity, weaponSource.level, weaponTarget.level, { experience, mora });
             required["Weapon Enhancement Material"] ||= 0;
             required["Weapon Enhancement Material"] += experience;
             required["Mora"] ||= 0;
@@ -83,7 +80,7 @@ for (const target of Object.values(targets)) {
         }
         for (let ascension = weaponSource.ascension + 1; ascension <= weaponTarget.ascension; ascension++) {
             for (const cost of weaponData.costs[`ascend${ascension}`]) {
-                console.log(weapon, "ascension", ascension, cost);
+                // console.log(weapon, "ascension", ascension, cost);
                 required[cost.name] ||= 0;
                 required[cost.name] += cost.count;
             }
@@ -96,7 +93,11 @@ for (const [materialName, desired] of Object.entries(required)) {
     const material = GenshinDb.material(materialName);
     if (material) {
         const inventory = materials[materialName]?.quantity || 0;
-        todo.push({ ...material, label: `${inventory} / ${desired}` });
+        todo.push({
+            ...material,
+            label: `${inventory} / ${desired}`,
+            icon: inventory >= desired ? "check-square-fill" : "",
+        });
     } else {
         // Special item... Character EXP Material, Weapon Enhancement Material
         for (const material of GenshinDb.materials(materialName, { matchCategories: true }).map(GenshinDb.material)) {

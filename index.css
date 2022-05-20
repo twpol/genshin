@@ -39,6 +39,18 @@
     border-bottom-right-radius: 15px;
 }
 
+.card-genshin > .icon {
+    position: relative;
+    height: 0;
+    top: -120px;
+    left: 8px;
+    font-size: 20px;
+}
+
+.card-genshin > .icon > .bi::before {
+    display: block;
+}
+
 .card-genshin > .rarity {
     position: relative;
     height: 0;
