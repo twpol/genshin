@@ -52,12 +52,15 @@ for (const target of Object.values(targets)) {
                 required[cost.name] += cost.count;
             }
         }
-        if (
-            characterSource.talent1 < characterTarget.talent1 ||
-            characterSource.talent2 < characterTarget.talent2 ||
-            characterSource.talent3 < characterTarget.talent3
-        ) {
-            // TODO: Calculate character talent level up materials
+        const talent = GenshinDb.talent(character);
+        for (const talentName of ["talent1", "talent2", "talent3"]) {
+            for (let level = characterSource[talentName] + 1; level <= characterTarget[talentName]; level++) {
+                for (const cost of talent.costs[`lvl${level}`]) {
+                    console.log(character, talentName, level, cost);
+                    required[cost.name] ||= 0;
+                    required[cost.name] += cost.count;
+                }
+            }
         }
     }
 
