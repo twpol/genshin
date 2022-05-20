@@ -104,7 +104,7 @@ function getCharacterCard(character, data) {
             title: character.name,
         },
         $("img", { class: "card-img-top image", src: character.images.icon }),
-        data.icon ? $("div", { class: "icon" }, $("i", { class: `bi bi-${data.icon}` })) : "",
+        data?.icon ? $("div", { class: "icon" }, $("i", { class: `bi bi-${data.icon}` })) : "",
         $("div", { class: "rarity" }, ...repeat(character.rarity, () => $("i", { class: "bi bi-star-fill" }))),
         $("div", { class: "card-body name" }, data ? data.label || `Lv. ${data.level}` : character.name)
     );
@@ -120,7 +120,7 @@ function getWeaponCard(weapon, data) {
             title: weapon.name,
         },
         $("img", { class: "card-img-top image", src: weapon.images.icon }),
-        data.icon ? $("div", { class: "icon" }, $("i", { class: `bi bi-${data.icon}` })) : "",
+        data?.icon ? $("div", { class: "icon" }, $("i", { class: `bi bi-${data.icon}` })) : "",
         $("div", { class: "rarity" }, ...repeat(weapon.rarity, () => $("i", { class: "bi bi-star-fill" }))),
         $("div", { class: "card-body name" }, data ? data.label || `Lv. ${data.level}` : weapon.name)
     );
@@ -136,7 +136,7 @@ function getMaterialCard(material, data) {
             title: material.name,
         },
         $("img", { class: "card-img-top image", src: material.images.fandom }),
-        data.icon ? $("div", { class: "icon" }, $("i", { class: `bi bi-${data.icon}` })) : "",
+        data?.icon ? $("div", { class: "icon" }, $("i", { class: `bi bi-${data.icon}` })) : "",
         $("div", { class: "rarity" }, ...repeat(material.rarity, () => $("i", { class: "bi bi-star-fill" }))),
         $("div", { class: "card-body name" }, data ? data.label || data.quantity : material.name)
     );
