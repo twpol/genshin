@@ -133,13 +133,11 @@ function display() {
         if (material.provides) {
             const [providedName, providedQuantity] = Object.entries(material.provides)[0];
             const providedMaterial = requiredMaterials.find((m) => m.name === providedName);
-            const quantity = Math.floor(
-                Math.round(Math.max(0, material.provided - material.required) * providedQuantity)
-            );
+            const quantity = Math.floor(Math.max(0, material.provided - material.required) * providedQuantity);
             providedMaterial.provided += quantity;
             material.provided -= Math.round(quantity / providedQuantity);
             if (providedQuantity < 1) {
-                material.crafted = true;
+                material.crafted = quantity > 0;
             } else {
                 providedMaterial.providedBy ||= [];
                 providedMaterial.providedBy.push(material);
