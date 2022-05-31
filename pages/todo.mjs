@@ -1,6 +1,6 @@
-import { getElements } from "../modules/elements.mjs";
+import { getElements, loadForm, saveForm } from "../modules/elements.mjs";
 import { getCard, getCharacterLevelExperience, getWeaponLevelExperience, sort } from "../modules/genshin.mjs";
-import { KEY, load } from "../modules/storage.mjs";
+import { KEY, load, save } from "../modules/storage.mjs";
 
 const e = getElements();
 
@@ -115,52 +115,79 @@ for (const materialName of Object.keys(requiredQuantities)) {
     }
 }
 
-const requiredMaterials = Object.entries(requiredQuantities).map(([name, required]) => {
-    const inventory = materials[name]?.quantity ?? 0;
-    return {
-        required,
-        provided: inventory,
-        inventory,
-        name,
-        ...extraMaterialData[name],
-        ...GenshinDb.material(name),
-    };
-});
-requiredMaterials.sort(sort);
+function display() {
+    const requiredMaterials = Object.entries(requiredQuantities).map(([name, required]) => {
+        const inventory = materials[name]?.quantity ?? 0;
+        return {
+            required,
+            provided: inventory,
+            inventory,
+            name,
+            ...extraMaterialData[name],
+            ...GenshinDb.material(name),
+        };
+    });
+    requiredMaterials.sort(sort);
 
-for (const material of requiredMaterials.slice().reverse()) {
-    if (material.provides) {
-        const [providedName, providedQuantity] = Object.entries(material.provides)[0];
-        const providedMaterial = requiredMaterials.find((m) => m.name === providedName);
-        const quantity = Math.floor(Math.round(Math.max(0, material.provided - material.required) * providedQuantity));
-        providedMaterial.provided += quantity;
-        material.provided -= Math.round(quantity / providedQuantity);
-        if (providedQuantity < 1) {
-            material.crafted = true;
-        } else {
-            providedMaterial.providedBy ||= [];
-            providedMaterial.providedBy.push(material);
-            if (providedMaterial.provided > providedMaterial.required) {
-                providedMaterial.providedBy.forEach((m) => (m.satisfied = true));
+    for (const material of requiredMaterials.slice().reverse()) {
+        if (material.provides) {
+            const [providedName, providedQuantity] = Object.entries(material.provides)[0];
+            const providedMaterial = requiredMaterials.find((m) => m.name === providedName);
+            const quantity = Math.floor(
+                Math.round(Math.max(0, material.provided - material.required) * providedQuantity)
+            );
+            providedMaterial.provided += quantity;
+            material.provided -= Math.round(quantity / providedQuantity);
+            if (providedQuantity < 1) {
+                material.crafted = true;
+            } else {
+                providedMaterial.providedBy ||= [];
+                providedMaterial.providedBy.push(material);
+                if (providedMaterial.provided > providedMaterial.required) {
+                    providedMaterial.providedBy.forEach((m) => (m.satisfied = true));
+                }
             }
+        }
+    }
+
+    e.todo.list.replaceChildren();
+    for (const material of requiredMaterials) {
+        if (material.category) {
+            const { required, provided, inventory, satisfied, crafted } = material;
+            e.todo.list.append(
+                getCard(material, {
+                    [KEY]: material.name,
+                    label: required ? `${inventory} / ${required}` : `${inventory}`,
+                    icon: [
+                        (required && provided >= required) || satisfied ? "check-square-fill" : "",
+                        crafted ? "arrow-left-square" : "",
+                    ].filter((i) => !!i),
+                })
+            );
         }
     }
 }
 
-const todo = new Array();
-for (const material of requiredMaterials) {
-    if (material.category) {
-        const { required, provided, inventory, satisfied, crafted } = material;
-        todo.push({
-            ...material,
-            label: required ? `${inventory} / ${required}` : `${inventory}`,
-            icon: [
-                (required && provided >= required) || satisfied ? "check-square-fill" : "",
-                crafted ? "arrow-left-square" : "",
-            ].filter((i) => !!i),
-        });
+e.todo.list.addEventListener("click", (event) => {
+    const card = event.target.closest(".card-genshin");
+    if (!card) return;
+
+    const key = card.dataset.key;
+    e.material.edit.dialog.dataset.key = key;
+    if (!(key in materials)) materials[key] = { quantity: 0 };
+    loadForm(e.material.edit, materials[key]);
+    e.material.edit.dialog.returnValue = "";
+    e.material.edit.dialog.showModal();
+});
+
+e.material.edit.dialog.addEventListener("close", () => {
+    const returnValue = e.material.edit.dialog.returnValue;
+    const key = e.material.edit.dialog.dataset.key;
+    if (returnValue === "save") {
+        saveForm(e.material.edit, materials[key]);
+        save(materials);
+        display();
     }
-}
-for (const material of todo) {
-    e.todo.list.append(getCard(material, material));
-}
+});
+
+display();
