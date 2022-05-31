@@ -40,6 +40,8 @@
 }
 
 .card-genshin > .icon {
+    display: flex;
+    gap: 8px;
     position: relative;
     height: 0;
     top: -120px;

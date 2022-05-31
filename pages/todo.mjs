@@ -4,8 +4,6 @@ import { KEY, load } from "../modules/storage.mjs";
 
 const e = getElements();
 
-// TODO: Calculate and display required materials from characters/weapons/targets
-// TODO: Display when materials are sufficient
 // TODO: Display possible domains to enter
 // TODO: Allow editing quantity of materials
 // TODO: Allow submitting domain results (adding materials to inventory)
@@ -16,8 +14,7 @@ const weapons = load("weapons");
 const materials = load("materials");
 const targets = load("targets");
 
-const required = Object.create(null);
-
+const requiredQuantities = Object.create(null);
 for (const target of Object.values(targets)) {
     const character = target.type === "character" ? target[KEY] : null;
     const weapon =
@@ -40,16 +37,16 @@ for (const target of Object.values(targets)) {
             // TODO: Special consideration is needed for wasted EXP at ascension levels
             const { experience, mora } = getCharacterLevelExperience(characterSource.level, characterTarget.level);
             // console.log(character, "level", characterSource.level, characterTarget.level, { experience, mora });
-            required["Character EXP Material"] ||= 0;
-            required["Character EXP Material"] += experience;
-            required["Mora"] ||= 0;
-            required["Mora"] += mora;
+            requiredQuantities["Character EXP Material"] ||= 0;
+            requiredQuantities["Character EXP Material"] += experience;
+            requiredQuantities["Mora"] ||= 0;
+            requiredQuantities["Mora"] += mora;
         }
         for (let ascension = characterSource.ascension + 1; ascension <= characterTarget.ascension; ascension++) {
             for (const cost of characterData.costs[`ascend${ascension}`]) {
                 // console.log(character, "ascension", ascension, cost);
-                required[cost.name] ||= 0;
-                required[cost.name] += cost.count;
+                requiredQuantities[cost.name] ||= 0;
+                requiredQuantities[cost.name] += cost.count;
             }
         }
         const talent = GenshinDb.talent(character);
@@ -57,8 +54,8 @@ for (const target of Object.values(targets)) {
             for (let level = characterSource[talentName] + 1; level <= characterTarget[talentName]; level++) {
                 for (const cost of talent.costs[`lvl${level}`]) {
                     // console.log(character, talentName, level, cost);
-                    required[cost.name] ||= 0;
-                    required[cost.name] += cost.count;
+                    requiredQuantities[cost.name] ||= 0;
+                    requiredQuantities[cost.name] += cost.count;
                 }
             }
         }
@@ -73,41 +70,97 @@ for (const target of Object.values(targets)) {
                 weaponTarget.level
             );
             // console.log(weapon, "level", weaponData.rarity, weaponSource.level, weaponTarget.level, { experience, mora });
-            required["Weapon Enhancement Material"] ||= 0;
-            required["Weapon Enhancement Material"] += experience;
-            required["Mora"] ||= 0;
-            required["Mora"] += mora;
+            requiredQuantities["Weapon Enhancement Material"] ||= 0;
+            requiredQuantities["Weapon Enhancement Material"] += experience;
+            requiredQuantities["Mora"] ||= 0;
+            requiredQuantities["Mora"] += mora;
         }
         for (let ascension = weaponSource.ascension + 1; ascension <= weaponTarget.ascension; ascension++) {
             for (const cost of weaponData.costs[`ascend${ascension}`]) {
                 // console.log(weapon, "ascension", ascension, cost);
-                required[cost.name] ||= 0;
-                required[cost.name] += cost.count;
+                requiredQuantities[cost.name] ||= 0;
+                requiredQuantities[cost.name] += cost.count;
+            }
+        }
+    }
+}
+
+const extraMaterialData = Object.create(null);
+const groups = Object.create(null);
+for (const materialName of Object.keys(requiredQuantities)) {
+    const material = GenshinDb.material(materialName);
+    if (material) {
+        const group = (groups[material.materialtype] =
+            groups[material.materialtype] ||
+            GenshinDb.materials(material.materialtype, { matchCategories: true }).map(GenshinDb.material).sort(sort));
+
+        const groupPosition = group.findIndex((m) => m.name === material.name);
+        for (let position = groupPosition; position + 1 < group.length; position++) {
+            if (Number(group[position].rarity) !== 1 + Number(group[position + 1].rarity)) break;
+            requiredQuantities[group[position + 1].name] ||= 0;
+            extraMaterialData[group[position + 1].name] ||= Object.create(null);
+            extraMaterialData[group[position + 1].name].provides = { [group[position].name]: 1 / 3 };
+        }
+    } else {
+        // Special item... Character EXP Material, Weapon Enhancement Material
+        extraMaterialData[materialName] ||= Object.create(null);
+        extraMaterialData[materialName].sortorder = 1000000; // Sort to the front, so processed last
+        const providedBy = GenshinDb.materials(materialName, { matchCategories: true });
+        for (const material2 of providedBy.map(GenshinDb.material)) {
+            const provides = parseInt(material2.description.match(/Gives ([\d,]+) EXP/)[1].replace(",", ""));
+            requiredQuantities[material2.name] ||= 0;
+            extraMaterialData[material2.name] ||= Object.create(null);
+            extraMaterialData[material2.name].provides = { [materialName]: provides };
+        }
+    }
+}
+
+const requiredMaterials = Object.entries(requiredQuantities).map(([name, required]) => {
+    const inventory = materials[name]?.quantity ?? 0;
+    return {
+        required,
+        provided: inventory,
+        inventory,
+        name,
+        ...extraMaterialData[name],
+        ...GenshinDb.material(name),
+    };
+});
+requiredMaterials.sort(sort);
+
+for (const material of requiredMaterials.slice().reverse()) {
+    if (material.provides) {
+        const [providedName, providedQuantity] = Object.entries(material.provides)[0];
+        const providedMaterial = requiredMaterials.find((m) => m.name === providedName);
+        const quantity = Math.floor(Math.round(Math.max(0, material.provided - material.required) * providedQuantity));
+        providedMaterial.provided += quantity;
+        material.provided -= Math.round(quantity / providedQuantity);
+        if (providedQuantity < 1) {
+            material.crafted = true;
+        } else {
+            providedMaterial.providedBy ||= [];
+            providedMaterial.providedBy.push(material);
+            if (providedMaterial.provided > providedMaterial.required) {
+                providedMaterial.providedBy.forEach((m) => (m.satisfied = true));
             }
         }
     }
 }
 
 const todo = new Array();
-for (const [materialName, desired] of Object.entries(required)) {
-    const material = GenshinDb.material(materialName);
-    if (material) {
-        const inventory = materials[materialName]?.quantity || 0;
+for (const material of requiredMaterials) {
+    if (material.category) {
+        const { required, provided, inventory, satisfied, crafted } = material;
         todo.push({
             ...material,
-            label: `${inventory} / ${desired}`,
-            icon: inventory >= desired ? "check-square-fill" : "",
+            label: required ? `${inventory} / ${required}` : `${inventory}`,
+            icon: [
+                (required && provided >= required) || satisfied ? "check-square-fill" : "",
+                crafted ? "arrow-left-square" : "",
+            ].filter((i) => !!i),
         });
-    } else {
-        // Special item... Character EXP Material, Weapon Enhancement Material
-        for (const material of GenshinDb.materials(materialName, { matchCategories: true }).map(GenshinDb.material)) {
-            const inventory = materials[materialName]?.quantity || 0;
-            const provides = parseInt(material.description.match(/Gives ([\d,]+) EXP/)[1].replace(",", ""));
-            todo.push({ ...material, label: `${inventory} / ≤${Math.ceil(desired / provides)}` });
-        }
     }
 }
-todo.sort(sort);
 for (const material of todo) {
     e.todo.list.append(getCard(material, material));
 }
