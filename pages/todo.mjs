@@ -176,7 +176,10 @@ e.todo.list.addEventListener("click", (event) => {
     const materials = load("materials", display);
     const key = card.dataset.key;
     e.material.edit.dialog.dataset.key = key;
-    if (!(key in materials)) materials[key] = { quantity: 0 };
+    if (!(key in materials)) {
+        materials[key] = { quantity: 0 };
+        save(materials);
+    }
     loadForm(e.material.edit, materials[key]);
     e.material.edit.dialog.returnValue = "";
     e.material.edit.dialog.showModal();
