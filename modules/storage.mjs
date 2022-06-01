@@ -12,7 +12,9 @@ export function load(name, changeCallback = null) {
     const data = JSON.parse(localStorage[name] || "{}");
     data[LOADED_NAME] = name;
     for (const [name, value] of Object.entries(data)) {
-        value[KEY] = name;
+        if (typeof value === "object") {
+            value[KEY] = name;
+        }
     }
     return data;
 }
@@ -21,6 +23,20 @@ export function save(data) {
     const name = data[LOADED_NAME];
     localStorage[name] = JSON.stringify(data);
     change(name);
+}
+
+export function uuid() {
+    let uuid = "";
+    while (uuid.length < 32) {
+        uuid += Math.random().toString(16).substring(2, 6);
+    }
+    return [
+        uuid.substring(0, 8),
+        uuid.substring(8, 12),
+        uuid.substring(12, 16),
+        uuid.substring(16, 20),
+        uuid.substring(20, 32),
+    ].join("-");
 }
 
 function watch(name, changeCallback) {

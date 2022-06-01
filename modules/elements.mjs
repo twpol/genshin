@@ -77,3 +77,11 @@ function isHiddenInDialog(element) {
     }
     throw new Error("isHiddenInDialog can only be called on elements inside <dialog>");
 }
+
+export function setText(element, text, emptyHtml, format) {
+    if (text) {
+        element.textContent = format ? format(text) : text;
+    } else {
+        element.innerHTML = emptyHtml;
+    }
+}
