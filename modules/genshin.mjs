@@ -148,8 +148,9 @@ export function setGenshinUserList(e, type, defaultValue) {
 
     function display() {
         base.list.replaceChildren();
-        const data = load(types);
-        const characters = type === "target" ? load("characters") : null;
+        base.edit.dialog.close();
+        const data = load(types, display);
+        const characters = type === "target" ? load("characters", display) : null;
         const items = Object.entries(data).map(([name, value]) => GenshinDb[value.type || type](name));
         items.sort(sort);
         for (const item of items) {
@@ -164,7 +165,7 @@ export function setGenshinUserList(e, type, defaultValue) {
         const card = event.target.closest(".card-genshin");
         if (!card) return;
 
-        const data = load(types);
+        const data = load(types, display);
         const key = card.dataset.key;
         const type = card.dataset.type;
         base.edit.dialog.dataset.key = key;
@@ -178,7 +179,7 @@ export function setGenshinUserList(e, type, defaultValue) {
             }
         }
         if (base.edit.weapon) {
-            const weapons = load("weapons");
+            const weapons = load("weapons", display);
             base.edit.weapon.replaceChildren();
             base.edit.weapon.append($("option", { value: "" }, "(none)"));
             for (const weaponName of Object.keys(weapons).sort()) {
@@ -195,17 +196,15 @@ export function setGenshinUserList(e, type, defaultValue) {
 
     base.edit.dialog.addEventListener("close", () => {
         const returnValue = base.edit.dialog.returnValue;
-        const data = load(types);
+        const data = load(types, display);
         const key = base.edit.dialog.dataset.key;
         if (returnValue === "delete") {
             delete data[key];
             save(data);
-            display();
         } else if (returnValue === "save") {
             saveForm(base.edit, data[key]);
             if ("ascension" in data[key]) data[key].ascension = getCorrectAscension(data[key]);
             save(data);
-            display();
         }
     });
 
@@ -219,7 +218,6 @@ export function setGenshinUserList(e, type, defaultValue) {
 
         data[name] = { type: option.dataset.type, ...defaultValue, ...data[name] };
         save(data);
-        display();
         base.list.querySelector(`[data-key="${name}"]`).click();
     });
     if (type === "target") {
