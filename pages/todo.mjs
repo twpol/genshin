@@ -1,4 +1,4 @@
-import { getElements, loadForm, saveForm } from "../modules/elements.mjs";
+import { $, getElements, loadForm, saveForm } from "../modules/elements.mjs";
 import { getCard, getCharacterLevelExperience, getWeaponLevelExperience, sort } from "../modules/genshin.mjs";
 import { KEY, load, save } from "../modules/storage.mjs";
 
@@ -15,6 +15,7 @@ function display() {
     const materials = load("materials", display);
     const targets = load("targets", display);
 
+    e.todo.upgrade.list.replaceChildren();
     const requiredQuantities = Object.create(null);
     for (const target of Object.values(targets)) {
         const character = target.type === "character" ? target[KEY] : null;
@@ -34,27 +35,26 @@ function display() {
         const weaponData = GenshinDb.weapon(weapon);
 
         if (character) {
-            if (characterSource.level < characterTarget.level) {
+            if (upgrade(character, "level", characterSource, characterTarget)) {
                 // TODO: Special consideration is needed for wasted EXP at ascension levels
                 const { experience, mora } = getCharacterLevelExperience(characterSource.level, characterTarget.level);
-                // console.log(character, "level", characterSource.level, characterTarget.level, { experience, mora });
                 requiredQuantities["Character EXP Material"] ||= 0;
                 requiredQuantities["Character EXP Material"] += experience;
                 requiredQuantities["Mora"] ||= 0;
                 requiredQuantities["Mora"] += mora;
             }
+            upgrade(character, "ascension", characterSource, characterTarget);
             for (let ascension = characterSource.ascension + 1; ascension <= characterTarget.ascension; ascension++) {
                 for (const cost of characterData.costs[`ascend${ascension}`]) {
-                    // console.log(character, "ascension", ascension, cost);
                     requiredQuantities[cost.name] ||= 0;
                     requiredQuantities[cost.name] += cost.count;
                 }
             }
             const talent = GenshinDb.talent(character);
             for (const talentName of ["talent1", "talent2", "talent3"]) {
+                upgrade(character, talentName, characterSource, characterTarget);
                 for (let level = characterSource[talentName] + 1; level <= characterTarget[talentName]; level++) {
                     for (const cost of talent.costs[`lvl${level}`]) {
-                        // console.log(character, talentName, level, cost);
                         requiredQuantities[cost.name] ||= 0;
                         requiredQuantities[cost.name] += cost.count;
                     }
@@ -63,22 +63,21 @@ function display() {
         }
 
         if (weapon) {
-            if (weaponSource.level < weaponTarget.level) {
+            if (upgrade(weapon, "level", weaponSource, weaponTarget)) {
                 // TODO: Special consideration is needed for wasted EXP at ascension levels
                 const { experience, mora } = getWeaponLevelExperience(
                     weaponData.rarity,
                     weaponSource.level,
                     weaponTarget.level
                 );
-                // console.log(weapon, "level", weaponData.rarity, weaponSource.level, weaponTarget.level, { experience, mora });
                 requiredQuantities["Weapon Enhancement Material"] ||= 0;
                 requiredQuantities["Weapon Enhancement Material"] += experience;
                 requiredQuantities["Mora"] ||= 0;
                 requiredQuantities["Mora"] += mora;
             }
+            upgrade(weapon, "ascension", weaponSource, weaponTarget);
             for (let ascension = weaponSource.ascension + 1; ascension <= weaponTarget.ascension; ascension++) {
                 for (const cost of weaponData.costs[`ascend${ascension}`]) {
-                    // console.log(weapon, "ascension", ascension, cost);
                     requiredQuantities[cost.name] ||= 0;
                     requiredQuantities[cost.name] += cost.count;
                 }
@@ -167,6 +166,22 @@ function display() {
             );
         }
     }
+}
+
+const TYPE_NAMES = {
+    level: "level",
+    ascension: "ascension level",
+    talent1: "talent 1 level",
+    talent2: "talent 2 level",
+    talent3: "talent 3 level",
+};
+
+function upgrade(name, type, source, target) {
+    const upgrade = source[type] < target[type];
+    if (upgrade) {
+        e.todo.upgrade.list.append($("li", `${name} ${TYPE_NAMES[type]} ${source[type]} to ${target[type]}`));
+    }
+    return upgrade;
 }
 
 e.todo.list.addEventListener("click", (event) => {
