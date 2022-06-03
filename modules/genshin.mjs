@@ -15,7 +15,8 @@ const SERVER_NA = "North America";
 
 const WEEKDAYS = [null, "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
 
-const ASCENSIONS = [20, 40, 50, 60, 70, 80, Infinity];
+const ASCENSION_MAX_LEVEL = [20, 40, 50, 60, 70, 80, Infinity];
+const ASCENSION_MAX_TALENT = [1, 1, 2, 4, 6, 8, 10];
 
 const CHARACTER_EXPERIENCE = [
     0, 0, 1000, 1325, 1700, 2150, 2625, 3150, 3725, 4350, 5000, 5700, 6450, 7225, 8050, 8925, 9825, 10750, 11725, 12725,
@@ -203,7 +204,14 @@ export function setGenshinUserList(e, type, defaultValue) {
             save(data);
         } else if (returnValue === "save") {
             saveForm(base.edit, data[key]);
-            if ("ascension" in data[key]) data[key].ascension = getCorrectAscension(data[key]);
+            if ("ascension" in data[key]) {
+                data[key].ascension = getCorrectAscension(data[key]);
+                if ("talent1" in data[key]) {
+                    data[key].talent1 = getCorrectTalentLevel(data[key], "talent1");
+                    data[key].talent2 = getCorrectTalentLevel(data[key], "talent2");
+                    data[key].talent3 = getCorrectTalentLevel(data[key], "talent3");
+                }
+            }
             save(data);
         }
     });
@@ -236,17 +244,21 @@ export function setGenshinUserList(e, type, defaultValue) {
     display();
 }
 
-export function getCorrectAscension(data) {
-    const ascension = ASCENSIONS.findIndex((a) => a >= data.level);
-    if (data.level === ASCENSIONS[ascension]) {
+function getCorrectAscension(data) {
+    const ascension = ASCENSION_MAX_LEVEL.findIndex((a) => a >= data.level);
+    if (data.level === ASCENSION_MAX_LEVEL[ascension]) {
         return Math.min(Math.max(data.ascension, ascension), ascension + 1);
     }
     return ascension;
 }
 
+function getCorrectTalentLevel(data, key) {
+    return Math.min(data[key], ASCENSION_MAX_TALENT[data.ascension]);
+}
+
 export function getCharacterLevelExperience(start, end) {
     const experience = range(start + 1, end + 1).reduce(
-        (total, level) => roundUp(total + CHARACTER_EXPERIENCE[level], ASCENSIONS.includes(level) ? 1000 : 1),
+        (total, level) => roundUp(total + CHARACTER_EXPERIENCE[level], ASCENSION_MAX_LEVEL.includes(level) ? 1000 : 1),
         0
     );
     const mora = experience / 5;
@@ -255,7 +267,8 @@ export function getCharacterLevelExperience(start, end) {
 
 export function getWeaponLevelExperience(rarity, start, end) {
     const experience = range(start + 1, end + 1).reduce(
-        (total, level) => roundUp(total + WEAPON_EXPERIENCE[rarity][level], ASCENSIONS.includes(level) ? 1000 : 1),
+        (total, level) =>
+            roundUp(total + WEAPON_EXPERIENCE[rarity][level], ASCENSION_MAX_LEVEL.includes(level) ? 1000 : 1),
         0
     );
     // TODO: Is this the correct way to adjust for Mora consumption or should it be per-level?
