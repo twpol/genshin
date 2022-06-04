@@ -15,8 +15,15 @@ const SERVER_NA = "North America";
 
 const WEEKDAYS = [null, "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
 
-const ASCENSION_MAX_LEVEL = [20, 40, 50, 60, 70, 80, Infinity];
+const ASCENSION_MAX_LEVEL = [20, 40, 50, 60, 70, 80, 90];
 const ASCENSION_MAX_TALENT = [1, 1, 2, 4, 6, 8, 10];
+
+const SORT_LEVEL = {
+    ascension: [null, ...ASCENSION_MAX_LEVEL.map((l) => l + 1)],
+    talent1: [null, null, 49, 58, 59, 68, 69, 78, 79, 88, 89],
+    talent2: [null, null, 49, 58, 59, 68, 69, 78, 79, 88, 89],
+    talent3: [null, null, 49, 58, 59, 68, 69, 78, 79, 88, 89],
+};
 
 const CHARACTER_EXPERIENCE = [
     0, 0, 1000, 1325, 1700, 2150, 2625, 3150, 3725, 4350, 5000, 5700, 6450, 7225, 8050, 8925, 9825, 10750, 11725, 12725,
@@ -257,20 +264,13 @@ function getCorrectTalentLevel(data, key) {
 }
 
 export function getCharacterLevelExperience(start, end) {
-    const experience = range(start + 1, end + 1).reduce(
-        (total, level) => roundUp(total + CHARACTER_EXPERIENCE[level], ASCENSION_MAX_LEVEL.includes(level) ? 1000 : 1),
-        0
-    );
+    const experience = range(start + 1, end + 1).reduce((total, level) => total + CHARACTER_EXPERIENCE[level], 0);
     const mora = experience / 5;
     return { experience, mora };
 }
 
 export function getWeaponLevelExperience(rarity, start, end) {
-    const experience = range(start + 1, end + 1).reduce(
-        (total, level) =>
-            roundUp(total + WEAPON_EXPERIENCE[rarity][level], ASCENSION_MAX_LEVEL.includes(level) ? 1000 : 1),
-        0
-    );
+    const experience = range(start + 1, end + 1).reduce((total, level) => total + WEAPON_EXPERIENCE[rarity][level], 0);
     // TODO: Is this the correct way to adjust for Mora consumption or should it be per-level?
     const mora = Math.ceil(experience / 10);
     return { experience, mora };
@@ -280,8 +280,171 @@ function range(start, end) {
     return Array.from(new Array(end - start), (_, index) => index + start);
 }
 
-function roundUp(number, chunk) {
-    return Math.ceil(number / chunk) * chunk;
+export function getUpgrades(type, name, source, target) {
+    const upgrades = [];
+    const data = GenshinDb[type](name);
+    const talent = GenshinDb.talent(name);
+    source = { ...source };
+    while (
+        source.talent1 < target.talent1 ||
+        source.talent2 < target.talent2 ||
+        source.talent3 < target.talent3 ||
+        source.level < target.level ||
+        source.ascension < target.ascension
+    ) {
+        if (source.talent1 < ASCENSION_MAX_TALENT[source.ascension]) {
+            upgrades.push({
+                type,
+                name,
+                key: "talent1",
+                value: source.talent1 + 1,
+                requires: Object.fromEntries(
+                    talent.costs[`lvl${source.talent1 + 1}`].map((cost) => [cost.name, cost.count])
+                ),
+            });
+            source.talent1++;
+        }
+        if (source.talent2 < ASCENSION_MAX_TALENT[source.ascension]) {
+            upgrades.push({
+                type,
+                name,
+                key: "talent2",
+                value: source.talent2 + 1,
+                requires: Object.fromEntries(
+                    talent.costs[`lvl${source.talent2 + 1}`].map((cost) => [cost.name, cost.count])
+                ),
+            });
+            source.talent2++;
+        }
+        if (source.talent3 < ASCENSION_MAX_TALENT[source.ascension]) {
+            upgrades.push({
+                type,
+                name,
+                key: "talent3",
+                value: source.talent3 + 1,
+                requires: Object.fromEntries(
+                    talent.costs[`lvl${source.talent3 + 1}`].map((cost) => [cost.name, cost.count])
+                ),
+            });
+            source.talent3++;
+        }
+        if (source.level < ASCENSION_MAX_LEVEL[source.ascension]) {
+            const { experience, mora } =
+                type === "character"
+                    ? getCharacterLevelExperience(source.level, ASCENSION_MAX_LEVEL[source.ascension])
+                    : getWeaponLevelExperience(data.rarity, source.level, ASCENSION_MAX_LEVEL[source.ascension]);
+            upgrades.push({
+                type,
+                name,
+                key: "level",
+                value: ASCENSION_MAX_LEVEL[source.ascension],
+                requires: {
+                    [type === "character" ? "Character EXP Material" : "Weapon Enhancement Material"]: experience,
+                    Mora: mora,
+                },
+            });
+            source.level = ASCENSION_MAX_LEVEL[source.ascension];
+        } else if (source.ascension < target.ascension) {
+            upgrades.push({
+                type,
+                name,
+                key: "ascension",
+                value: source.ascension + 1,
+                requires: Object.fromEntries(
+                    data.costs[`ascend${source.ascension + 1}`].map((cost) => [cost.name, cost.count])
+                ),
+            });
+            source.ascension++;
+        }
+    }
+    return upgrades;
+}
+
+export function getUpgradeMaterials(materials, upgrades) {
+    const possibleMaterials = new Set();
+    for (const upgrade of upgrades) {
+        for (const name of Object.keys(upgrade.requires)) {
+            possibleMaterials.add(name);
+        }
+    }
+
+    const extraMaterialData = Object.create(null);
+    const groups = Object.create(null);
+    for (const materialName of possibleMaterials) {
+        const material = GenshinDb.material(materialName);
+        if (material) {
+            const group = (groups[material.materialtype] =
+                groups[material.materialtype] ||
+                GenshinDb.materials(material.materialtype, { matchCategories: true })
+                    .map(GenshinDb.material)
+                    .sort(sort));
+
+            extraMaterialData[materialName] ||= Object.create(null);
+            extraMaterialData[materialName].providedBy = Object.create(null);
+            const groupPosition = group.findIndex((m) => m.name === material.name);
+            for (let position = groupPosition; position < group.length; position++) {
+                if (
+                    position > groupPosition &&
+                    Number(group[position - 1].rarity) !== 1 + Number(group[position].rarity)
+                ) {
+                    break;
+                }
+                possibleMaterials.add(group[position].name);
+                extraMaterialData[materialName].providedBy[group[position].name] = Math.pow(
+                    1 / 3,
+                    position - groupPosition
+                );
+            }
+        } else {
+            // Special item... Character EXP Material, Weapon Enhancement Material
+            extraMaterialData[materialName] ||= Object.create(null);
+            extraMaterialData[materialName].sortorder = 1000000; // Sort to the front, so processed last
+            extraMaterialData[materialName].providedBy = Object.create(null);
+            const providedBy = GenshinDb.materials(materialName, { matchCategories: true });
+            for (const material2 of providedBy.map(GenshinDb.material)) {
+                const provides = parseInt(material2.description.match(/Gives ([\d,]+) EXP/)[1].replace(",", ""));
+                possibleMaterials.add(material2.name);
+                extraMaterialData[materialName].providedBy[material2.name] = provides;
+            }
+        }
+    }
+
+    const consumedMaterials = Object.fromEntries(
+        Array.from(possibleMaterials).map((name) => {
+            const inventory = materials[name]?.quantity ?? 0;
+            return [
+                name,
+                {
+                    remaining: inventory,
+                    name,
+                    ...extraMaterialData[name],
+                    ...GenshinDb.material(name),
+                },
+            ];
+        })
+    );
+
+    return consumedMaterials;
+}
+
+export function hasRequiredUpgradeMaterials(materials, upgrade) {
+    upgrade.consumes = Object.create(null);
+    let hasRequired = true;
+    for (const [name, requires] of Object.entries(upgrade.requires)) {
+        let remaining = requires;
+        const providedBys = Object.entries(materials[name].providedBy || { [name]: 1 }).sort(sortProvidedBy);
+        const lastName = providedBys[providedBys.length - 1][0];
+        for (const [name, provides] of providedBys) {
+            const use1 = Math.min(materials[name].remaining, Math.floor(remaining / provides));
+            const use2 = name === lastName && use1 < materials[name].remaining && remaining > use1 * provides;
+            const use = use1 + (use2 ? 1 : 0);
+            upgrade.consumes[name] = use;
+            materials[name].remaining -= use;
+            remaining -= use * provides;
+        }
+        hasRequired &&= remaining <= 0;
+    }
+    return hasRequired;
 }
 
 export function sort(a, b) {
@@ -289,6 +452,16 @@ export function sort(a, b) {
     if (a.name < b.name) return -1;
     if (a.name > b.name) return 1;
     return 0;
+}
+
+export function sortUpgrade(a, b) {
+    const av = SORT_LEVEL[a.key]?.[a.value] ?? a.value;
+    const bv = SORT_LEVEL[b.key]?.[b.value] ?? b.value;
+    return av - bv;
+}
+
+function sortProvidedBy(a, b) {
+    return b[1] - a[1];
 }
 
 function getServerDate(server) {

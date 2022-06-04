@@ -1,11 +1,16 @@
 import { $, getElements, loadForm, saveForm } from "../modules/elements.mjs";
-import { getCard, getCharacterLevelExperience, getWeaponLevelExperience, sort } from "../modules/genshin.mjs";
+import {
+    getCard,
+    getUpgradeMaterials,
+    getUpgrades,
+    hasRequiredUpgradeMaterials,
+    sortUpgrade,
+} from "../modules/genshin.mjs";
 import { KEY, load, save } from "../modules/storage.mjs";
 
 const e = getElements();
 
 // TODO: Display possible domains to enter
-// TODO: Allow editing quantity of materials
 // TODO: Allow submitting domain results (adding materials to inventory)
 // TODO: Allow submitting new character/talent/weapon levels (consuming materials from inventory)
 
@@ -15,8 +20,7 @@ function display() {
     const materials = load("materials", display);
     const targets = load("targets", display);
 
-    e.todo.upgrade.list.replaceChildren();
-    const requiredQuantities = Object.create(null);
+    const upgrades = [];
     for (const target of Object.values(targets)) {
         const character = target.type === "character" ? target[KEY] : null;
         const weapon =
@@ -26,165 +30,79 @@ function display() {
                 ? characters[character].weapon || null
                 : null;
 
-        const characterSource = characters[character];
-        const characterTarget = characterSource ? target : null;
-        const characterData = GenshinDb.character(character);
-
-        const weaponSource = weapons[weapon];
-        const weaponTarget = weaponSource ? target : null;
-        const weaponData = GenshinDb.weapon(weapon);
-
         if (character) {
-            if (upgrade(character, "level", characterSource, characterTarget)) {
-                // TODO: Special consideration is needed for wasted EXP at ascension levels
-                const { experience, mora } = getCharacterLevelExperience(characterSource.level, characterTarget.level);
-                requiredQuantities["Character EXP Material"] ||= 0;
-                requiredQuantities["Character EXP Material"] += experience;
-                requiredQuantities["Mora"] ||= 0;
-                requiredQuantities["Mora"] += mora;
-            }
-            upgrade(character, "ascension", characterSource, characterTarget);
-            for (let ascension = characterSource.ascension + 1; ascension <= characterTarget.ascension; ascension++) {
-                for (const cost of characterData.costs[`ascend${ascension}`]) {
-                    requiredQuantities[cost.name] ||= 0;
-                    requiredQuantities[cost.name] += cost.count;
-                }
-            }
-            const talent = GenshinDb.talent(character);
-            for (const talentName of ["talent1", "talent2", "talent3"]) {
-                upgrade(character, talentName, characterSource, characterTarget);
-                for (let level = characterSource[talentName] + 1; level <= characterTarget[talentName]; level++) {
-                    for (const cost of talent.costs[`lvl${level}`]) {
-                        requiredQuantities[cost.name] ||= 0;
-                        requiredQuantities[cost.name] += cost.count;
-                    }
-                }
-            }
+            upgrades.push(...getUpgrades("character", character, characters[character], target));
         }
 
         if (weapon) {
-            if (upgrade(weapon, "level", weaponSource, weaponTarget)) {
-                // TODO: Special consideration is needed for wasted EXP at ascension levels
-                const { experience, mora } = getWeaponLevelExperience(
-                    weaponData.rarity,
-                    weaponSource.level,
-                    weaponTarget.level
-                );
-                requiredQuantities["Weapon Enhancement Material"] ||= 0;
-                requiredQuantities["Weapon Enhancement Material"] += experience;
-                requiredQuantities["Mora"] ||= 0;
-                requiredQuantities["Mora"] += mora;
-            }
-            upgrade(weapon, "ascension", weaponSource, weaponTarget);
-            for (let ascension = weaponSource.ascension + 1; ascension <= weaponTarget.ascension; ascension++) {
-                for (const cost of weaponData.costs[`ascend${ascension}`]) {
-                    requiredQuantities[cost.name] ||= 0;
-                    requiredQuantities[cost.name] += cost.count;
-                }
-            }
+            upgrades.push(...getUpgrades("weapon", weapon, weapons[weapon], target));
         }
     }
+    upgrades.sort(sortUpgrade);
 
-    const extraMaterialData = Object.create(null);
-    const groups = Object.create(null);
-    for (const materialName of Object.keys(requiredQuantities)) {
-        const material = GenshinDb.material(materialName);
-        if (material) {
-            const group = (groups[material.materialtype] =
-                groups[material.materialtype] ||
-                GenshinDb.materials(material.materialtype, { matchCategories: true })
-                    .map(GenshinDb.material)
-                    .sort(sort));
+    const upgradeMaterials = getUpgradeMaterials(materials, upgrades);
 
-            const groupPosition = group.findIndex((m) => m.name === material.name);
-            for (let position = groupPosition; position + 1 < group.length; position++) {
-                if (Number(group[position].rarity) !== 1 + Number(group[position + 1].rarity)) break;
-                requiredQuantities[group[position + 1].name] ||= 0;
-                extraMaterialData[group[position + 1].name] ||= Object.create(null);
-                extraMaterialData[group[position + 1].name].provides = { [group[position].name]: 1 / 3 };
-            }
-        } else {
-            // Special item... Character EXP Material, Weapon Enhancement Material
-            extraMaterialData[materialName] ||= Object.create(null);
-            extraMaterialData[materialName].sortorder = 1000000; // Sort to the front, so processed last
-            const providedBy = GenshinDb.materials(materialName, { matchCategories: true });
-            for (const material2 of providedBy.map(GenshinDb.material)) {
-                const provides = parseInt(material2.description.match(/Gives ([\d,]+) EXP/)[1].replace(",", ""));
-                requiredQuantities[material2.name] ||= 0;
-                extraMaterialData[material2.name] ||= Object.create(null);
-                extraMaterialData[material2.name].provides = { [materialName]: provides };
-            }
-        }
+    e.todo.upgrade.actions.replaceChildren();
+    const canUpgrade = Object.fromEntries(upgrades.map((upgrade) => [upgrade.name, true]));
+    for (const upgrade of upgrades) {
+        // Split this to avoid short-circuit evaluation skipping required method call
+        const hasRequired = hasRequiredUpgradeMaterials(upgradeMaterials, upgrade);
+        canUpgrade[upgrade.name] &&= hasRequired;
+        e.todo.upgrade.actions.append(
+            $(
+                "tr",
+                {
+                    "data-upgrade": JSON.stringify(upgrade),
+                },
+                $("td", upgrade.name),
+                $("td", TYPE_NAMES[upgrade.key]),
+                $("td", upgrade.value),
+                $(
+                    "td",
+                    canUpgrade[upgrade.name]
+                        ? $("button", { class: "btn btn-sm btn-primary", disabled: true }, "Done")
+                        : ""
+                )
+            ),
+            $(
+                "tr",
+                $(
+                    "td",
+                    { colspan: 4 },
+                    $(
+                        "div",
+                        { class: "custom-card-grid editable" },
+                        ...Object.keys(upgrade.consumes)
+                            .map((name) => upgradeMaterials[name])
+                            .map((material) => getCard(material, getCardUpgradeInfo(material, upgrade, hasRequired)))
+                    )
+                )
+            )
+        );
     }
+}
 
-    const requiredMaterials = Object.entries(requiredQuantities).map(([name, required]) => {
-        const inventory = materials[name]?.quantity ?? 0;
-        return {
-            required,
-            provided: inventory,
-            inventory,
-            name,
-            ...extraMaterialData[name],
-            ...GenshinDb.material(name),
-        };
-    });
-    requiredMaterials.sort(sort);
-
-    for (const material of requiredMaterials.slice().reverse()) {
-        if (material.provides) {
-            const [providedName, providedQuantity] = Object.entries(material.provides)[0];
-            const providedMaterial = requiredMaterials.find((m) => m.name === providedName);
-            const quantity = Math.floor(Math.max(0, material.provided - material.required) * providedQuantity);
-            providedMaterial.provided += quantity;
-            material.provided -= Math.round(quantity / providedQuantity);
-            if (providedQuantity < 1) {
-                material.crafted = quantity > 0;
-            } else {
-                providedMaterial.providedBy ||= [];
-                providedMaterial.providedBy.push(material);
-                if (providedMaterial.provided > providedMaterial.required) {
-                    providedMaterial.providedBy.forEach((m) => (m.satisfied = true));
-                }
-            }
-        }
-    }
-
-    e.todo.list.replaceChildren();
-    e.material.edit.dialog.close();
-    for (const material of requiredMaterials) {
-        if (material.category) {
-            const { required, provided, inventory, satisfied, crafted } = material;
-            e.todo.list.append(
-                getCard(material, {
-                    [KEY]: material.name,
-                    label: required ? `${inventory} / ${required}` : `${inventory}`,
-                    icon: [
-                        (required && provided >= required) || satisfied ? "check-square-fill" : "",
-                        crafted ? "arrow-left-square" : "",
-                    ].filter((i) => !!i),
-                })
-            );
-        }
-    }
+function getCardUpgradeInfo(material, upgrade, hasRequired) {
+    const EXP_MATERIALS = ["Character EXP Material", "Weapon Enhancement Material"];
+    const directlyRequired = material.name in upgrade.requires || EXP_MATERIALS.includes(material.materialtype);
+    const remainingQuantity = material.remaining + upgrade.consumes[material.name];
+    const requiredQuantity = hasRequired ? upgrade.consumes[material.name] : upgrade.requires?.[material.name] ?? 0;
+    return {
+        [KEY]: material.name,
+        icon: hasRequired ? [directlyRequired ? "check-square-fill" : "arrow-left-square"] : [],
+        label: `${remainingQuantity} / ${requiredQuantity}`,
+    };
 }
 
 const TYPE_NAMES = {
-    level: "level",
-    ascension: "ascension level",
-    talent1: "talent 1 level",
-    talent2: "talent 2 level",
-    talent3: "talent 3 level",
+    ascension: "Ascension level",
+    level: "Level",
+    talent1: "Talent 1 level",
+    talent2: "Talent 2 level",
+    talent3: "Talent 3 level",
 };
 
-function upgrade(name, type, source, target) {
-    const upgrade = source[type] < target[type];
-    if (upgrade) {
-        e.todo.upgrade.list.append($("li", `${name} ${TYPE_NAMES[type]} ${source[type]} to ${target[type]}`));
-    }
-    return upgrade;
-}
-
-e.todo.list.addEventListener("click", (event) => {
+e.todo.upgrade.actions.addEventListener("click", (event) => {
     const card = event.target.closest(".card-genshin");
     if (!card) return;
 

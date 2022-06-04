@@ -30,8 +30,17 @@
         </nav>
 
         <h2>To Do</h2>
-        <ul id="todo-upgrade-list"></ul>
-        <div class="custom-card-grid editable" id="todo-list"></div>
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Character</th>
+                    <th>Attribute</th>
+                    <th>Target</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody id="todo-upgrade-actions"></tbody>
+        </table>
 
         <dialog id="material-edit-dialog">
             <form method="dialog">
