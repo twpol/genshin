@@ -292,7 +292,13 @@ export function getUpgrades(type, name, source, target) {
         source.level < target.level ||
         source.ascension < target.ascension
     ) {
-        if (source.talent1 < ASCENSION_MAX_TALENT[source.ascension]) {
+        const localTarget = {
+            talent1: Math.min(target.talent1, ASCENSION_MAX_TALENT[source.ascension]),
+            talent2: Math.min(target.talent2, ASCENSION_MAX_TALENT[source.ascension]),
+            talent3: Math.min(target.talent3, ASCENSION_MAX_TALENT[source.ascension]),
+            level: Math.min(target.level, ASCENSION_MAX_LEVEL[source.ascension]),
+        };
+        if (source.talent1 < localTarget.talent1) {
             upgrades.push({
                 type,
                 name,
@@ -304,7 +310,7 @@ export function getUpgrades(type, name, source, target) {
             });
             source.talent1++;
         }
-        if (source.talent2 < ASCENSION_MAX_TALENT[source.ascension]) {
+        if (source.talent2 < localTarget.talent2) {
             upgrades.push({
                 type,
                 name,
@@ -316,7 +322,7 @@ export function getUpgrades(type, name, source, target) {
             });
             source.talent2++;
         }
-        if (source.talent3 < ASCENSION_MAX_TALENT[source.ascension]) {
+        if (source.talent3 < localTarget.talent3) {
             upgrades.push({
                 type,
                 name,
@@ -328,23 +334,24 @@ export function getUpgrades(type, name, source, target) {
             });
             source.talent3++;
         }
-        if (source.level < ASCENSION_MAX_LEVEL[source.ascension]) {
+        if (source.level < localTarget.level) {
             const { experience, mora } =
                 type === "character"
-                    ? getCharacterLevelExperience(source.level, ASCENSION_MAX_LEVEL[source.ascension])
-                    : getWeaponLevelExperience(data.rarity, source.level, ASCENSION_MAX_LEVEL[source.ascension]);
+                    ? getCharacterLevelExperience(source.level, localTarget.level)
+                    : getWeaponLevelExperience(data.rarity, source.level, localTarget.level);
             upgrades.push({
                 type,
                 name,
                 key: "level",
-                value: ASCENSION_MAX_LEVEL[source.ascension],
+                value: localTarget.level,
                 requires: {
                     [type === "character" ? "Character EXP Material" : "Weapon Enhancement Material"]: experience,
                     Mora: mora,
                 },
             });
-            source.level = ASCENSION_MAX_LEVEL[source.ascension];
-        } else if (source.ascension < target.ascension) {
+            source.level = localTarget.level;
+        }
+        if (source.ascension < target.ascension) {
             upgrades.push({
                 type,
                 name,
