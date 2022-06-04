@@ -44,10 +44,12 @@ function display() {
 
     e.todo.upgrade.actions.replaceChildren();
     const canUpgrade = Object.fromEntries(upgrades.map((upgrade) => [upgrade.name, true]));
+    const maxUpgrade = Object.create(null);
     for (const upgrade of upgrades) {
         // Split this to avoid short-circuit evaluation skipping required method call
         const hasRequired = hasRequiredUpgradeMaterials(upgradeMaterials, upgrade);
         canUpgrade[upgrade.name] &&= hasRequired;
+        maxUpgrade[upgrade.name] ||= upgrade.sort;
         e.todo.upgrade.actions.append(
             $(
                 "tr",
@@ -60,7 +62,9 @@ function display() {
                 $(
                     "td",
                     canUpgrade[upgrade.name]
-                        ? $("button", { class: "btn btn-sm btn-primary", disabled: true }, "Done")
+                        ? maxUpgrade[upgrade.name] === upgrade.sort
+                            ? $("button", { class: "btn btn-sm btn-primary button-done" }, "Done")
+                            : "Ready"
                         : ""
                 )
             ),
@@ -103,19 +107,33 @@ const TYPE_NAMES = {
 };
 
 e.todo.upgrade.actions.addEventListener("click", (event) => {
-    const card = event.target.closest(".card-genshin");
-    if (!card) return;
+    const element = event.target.closest(".card-genshin, .button-done");
+    if (!element) return;
 
-    const materials = load("materials", display);
-    const key = card.dataset.key;
-    e.material.edit.dialog.dataset.key = key;
-    if (!(key in materials)) {
-        materials[key] = { quantity: 0 };
+    if (element.classList.contains("card-genshin")) {
+        const materials = load("materials", display);
+        const key = element.dataset.key;
+        e.material.edit.dialog.dataset.key = key;
+        if (!(key in materials)) {
+            materials[key] = { quantity: 0 };
+            save(materials);
+        }
+        loadForm(e.material.edit, materials[key]);
+        e.material.edit.dialog.returnValue = "";
+        e.material.edit.dialog.showModal();
+    } else if (element.classList.contains("button-done")) {
+        const upgrade = JSON.parse(element.closest("[data-upgrade]").dataset.upgrade);
+        const materials = load("materials");
+        const objects = load(`${upgrade.type}s`);
+        objects[upgrade.name][upgrade.key] = upgrade.value;
+        for (const [name, count] of Object.entries(upgrade.consumes)) {
+            if (count) {
+                materials[name].quantity -= count;
+            }
+        }
         save(materials);
+        save(objects);
     }
-    loadForm(e.material.edit, materials[key]);
-    e.material.edit.dialog.returnValue = "";
-    e.material.edit.dialog.showModal();
 });
 
 e.material.edit.dialog.addEventListener("close", () => {

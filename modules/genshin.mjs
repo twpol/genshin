@@ -357,6 +357,9 @@ export function getUpgrades(type, name, source, target) {
             source.ascension++;
         }
     }
+    upgrades.forEach((upgrade) => {
+        upgrade.sort = SORT_LEVEL[upgrade.key]?.[upgrade.value] ?? upgrade.value;
+    });
     return upgrades;
 }
 
@@ -435,6 +438,7 @@ export function hasRequiredUpgradeMaterials(materials, upgrade) {
         const providedBys = Object.entries(materials[name].providedBy || { [name]: 1 }).sort(sortProvidedBy);
         const lastName = providedBys[providedBys.length - 1][0];
         for (const [name, provides] of providedBys) {
+            // TODO: This does not account for Mora when crafting
             const use1 = Math.min(materials[name].remaining, Math.floor(remaining / provides));
             const use2 = name === lastName && use1 < materials[name].remaining && remaining > use1 * provides;
             const use = use1 + (use2 ? 1 : 0);
@@ -455,9 +459,7 @@ export function sort(a, b) {
 }
 
 export function sortUpgrade(a, b) {
-    const av = SORT_LEVEL[a.key]?.[a.value] ?? a.value;
-    const bv = SORT_LEVEL[b.key]?.[b.value] ?? b.value;
-    return av - bv;
+    return a.sort - b.sort;
 }
 
 function sortProvidedBy(a, b) {
