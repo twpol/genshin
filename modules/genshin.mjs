@@ -20,9 +20,9 @@ const ASCENSION_MAX_TALENT = [1, 1, 2, 4, 6, 8, 10];
 
 const SORT_LEVEL = {
     ascension: [null, ...ASCENSION_MAX_LEVEL.map((l) => l + 1)],
-    talent1: [null, null, 49, 58, 59, 68, 69, 78, 79, 88, 89],
-    talent2: [null, null, 49, 58, 59, 68, 69, 78, 79, 88, 89],
-    talent3: [null, null, 49, 58, 59, 68, 69, 78, 79, 88, 89],
+    talent1: [null, null, 47, 54, 57, 64, 67, 74, 77, 84, 87],
+    talent2: [null, null, 48, 55, 58, 65, 68, 75, 78, 85, 88],
+    talent3: [null, null, 49, 56, 59, 66, 69, 76, 79, 86, 89],
 };
 
 const CHARACTER_EXPERIENCE = [
