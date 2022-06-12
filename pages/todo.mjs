@@ -3,7 +3,7 @@ import {
     getCard,
     getUpgradeMaterials,
     getUpgrades,
-    hasRequiredUpgradeMaterials,
+    checkRequiredUpgradeMaterials,
     sortUpgrade,
 } from "../modules/genshin.mjs";
 import { KEY, load, save } from "../modules/storage.mjs";
@@ -47,8 +47,8 @@ function display() {
     const maxUpgrade = Object.create(null);
     for (const upgrade of upgrades) {
         // Split this to avoid short-circuit evaluation skipping required method call
-        const hasRequired = hasRequiredUpgradeMaterials(upgradeMaterials, upgrade);
-        canUpgrade[upgrade.name] &&= hasRequired;
+        const check = checkRequiredUpgradeMaterials(upgradeMaterials, upgrade);
+        canUpgrade[upgrade.name] &&= check.all;
         maxUpgrade[upgrade.name] ||= upgrade.sort;
         e.todo.upgrade.actions.append(
             $(
@@ -78,7 +78,7 @@ function display() {
                         { class: "custom-card-grid editable" },
                         ...Object.keys(upgrade.consumes)
                             .map((name) => upgradeMaterials[name])
-                            .map((material) => getCard(material, getCardUpgradeInfo(material, upgrade, hasRequired)))
+                            .map((material) => getCard(material, getCardUpgradeInfo(material, upgrade, check)))
                     )
                 )
             )
@@ -86,14 +86,14 @@ function display() {
     }
 }
 
-function getCardUpgradeInfo(material, upgrade, hasRequired) {
+function getCardUpgradeInfo(material, upgrade, check) {
     const EXP_MATERIALS = ["Character EXP Material", "Weapon Enhancement Material"];
     const directlyRequired = material.name in upgrade.requires || EXP_MATERIALS.includes(material.materialtype);
     const remainingQuantity = material.remaining + upgrade.consumes[material.name];
-    const requiredQuantity = hasRequired ? upgrade.consumes[material.name] : upgrade.requires?.[material.name] ?? 0;
+    const requiredQuantity = check.all ? upgrade.consumes[material.name] : upgrade.requires?.[material.name] ?? 0;
     return {
         [KEY]: material.name,
-        icon: hasRequired ? [directlyRequired ? "check-square-fill" : "arrow-left-square"] : [],
+        icon: check[material.name] ? [directlyRequired ? "check-square-fill" : "arrow-left-square"] : [],
         label: `${remainingQuantity} / ${requiredQuantity}`,
     };
 }

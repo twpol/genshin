@@ -437,9 +437,10 @@ export function getUpgradeMaterials(materials, upgrades) {
     return consumedMaterials;
 }
 
-export function hasRequiredUpgradeMaterials(materials, upgrade) {
+export function checkRequiredUpgradeMaterials(materials, upgrade) {
     upgrade.consumes = Object.create(null);
-    let hasRequired = true;
+    const check = Object.create(null);
+    check.all = true;
     for (const [name, requires] of Object.entries(upgrade.requires)) {
         let remaining = requires;
         const providedBys = Object.entries(materials[name].providedBy || { [name]: 1 }).sort(sortProvidedBy);
@@ -452,10 +453,13 @@ export function hasRequiredUpgradeMaterials(materials, upgrade) {
             upgrade.consumes[name] = use;
             materials[name].remaining -= use;
             remaining -= use * provides;
+            check[name] = use > 0;
         }
-        hasRequired &&= remaining <= 0;
+        providedBys.forEach(([name]) => (check[name] &&= remaining <= 0));
+        check[name] = remaining <= 0;
+        check.all &&= check[name];
     }
-    return hasRequired;
+    return check;
 }
 
 export function sort(a, b) {
