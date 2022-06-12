@@ -93,7 +93,14 @@ function getCardUpgradeInfo(material, upgrade, check) {
     const requiredQuantity = check.all ? upgrade.consumes[material.name] : upgrade.requires?.[material.name] ?? 0;
     return {
         [KEY]: material.name,
-        icon: check[material.name] ? [directlyRequired ? "check-square-fill" : "arrow-left-square"] : [],
+        icon:
+            check[material.name] === true && directlyRequired
+                ? ["check-square-fill"]
+                : check[material.name] === true && !directlyRequired
+                ? ["arrow-left-square"]
+                : check[material.name] === null && !directlyRequired
+                ? ["slash-square"]
+                : [],
         label: `${remainingQuantity} / ${requiredQuantity}`,
     };
 }

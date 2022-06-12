@@ -453,9 +453,9 @@ export function checkRequiredUpgradeMaterials(materials, upgrade) {
             upgrade.consumes[name] = use;
             materials[name].remaining -= use;
             remaining -= use * provides;
-            check[name] = use > 0;
+            check[name] = use > 0 ? true : null;
         }
-        providedBys.forEach(([name]) => (check[name] &&= remaining <= 0));
+        if (remaining > 0) providedBys.forEach(([name]) => (check[name] = false));
         check[name] = remaining <= 0;
         check.all &&= check[name];
     }
