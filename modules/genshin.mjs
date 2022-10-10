@@ -400,8 +400,8 @@ export function getUpgradeMaterials(materials, upgrades) {
                     break;
                 }
                 possibleMaterials.add(group[position].name);
-                extraMaterialData[materialName].providedBy[group[position].name] = Math.pow(
-                    1 / 3,
+                extraMaterialData[materialName].providedBy[group[position].name] = -Math.pow(
+                    3,
                     position - groupPosition
                 );
             }
@@ -447,13 +447,21 @@ export function checkRequiredUpgradeMaterials(materials, upgrade) {
         const lastName = providedBys[providedBys.length - 1][0];
         for (const [name, provides] of providedBys) {
             // TODO: This does not account for Mora when crafting
-            const use1 = Math.min(materials[name].remaining, Math.floor(remaining / provides));
-            const use2 = name === lastName && use1 < materials[name].remaining && remaining > use1 * provides;
-            const use = use1 + (use2 ? 1 : 0);
-            upgrade.consumes[name] = use;
-            materials[name].remaining -= use;
-            remaining -= use * provides;
-            check[name] = use > 0 ? true : null;
+            if (provides > 0) {
+                // Consume Mora and experience items here
+                const use = Math.max(0, Math.min(materials[name].remaining, Math.ceil(remaining / provides)));
+                upgrade.consumes[name] = use;
+                materials[name].remaining -= use;
+                remaining -= use * provides;
+                check[name] = use > 0 ? true : null;
+            } else {
+                // Consume materials here (including crafting)
+                const use = Math.min(materials[name].remaining, Math.round(remaining * -provides));
+                upgrade.consumes[name] = use;
+                materials[name].remaining -= use;
+                remaining -= use / -provides;
+                check[name] = use > 0 ? true : null;
+            }
         }
         if (remaining > 0) providedBys.forEach(([name]) => (check[name] = false));
         check[name] = remaining <= 0;

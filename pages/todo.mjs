@@ -97,7 +97,7 @@ function getCardUpgradeInfo(material, upgrade, check) {
             check[material.name] === true && directlyRequired
                 ? ["check-square-fill"]
                 : check[material.name] === true && !directlyRequired
-                ? ["arrow-left-square"]
+                ? ["arrow-left-square-fill"]
                 : check[material.name] === null && !directlyRequired
                 ? ["slash-square"]
                 : [],
