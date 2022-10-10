@@ -408,7 +408,7 @@ export function getUpgradeMaterials(materials, upgrades) {
         } else {
             // Special item... Character EXP Material, Weapon Enhancement Material
             extraMaterialData[materialName] ||= Object.create(null);
-            extraMaterialData[materialName].sortorder = 1000000; // Sort to the front, so processed last
+            extraMaterialData[materialName].sortorder = -1000000; // Sort to the front, so processed last
             extraMaterialData[materialName].providedBy = Object.create(null);
             const providedBy = GenshinDb.materials(materialName, { matchCategories: true });
             for (const material2 of providedBy.map(GenshinDb.material)) {
@@ -463,7 +463,7 @@ export function checkRequiredUpgradeMaterials(materials, upgrade) {
 }
 
 export function sort(a, b) {
-    if (a.sortorder || b.sortorder) return b.sortorder - a.sortorder;
+    if (a.sortorder || b.sortorder) return a.sortorder - b.sortorder;
     if (a.name < b.name) return -1;
     if (a.name > b.name) return 1;
     return 0;
